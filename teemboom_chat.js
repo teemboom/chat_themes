@@ -41,8 +41,8 @@ function teemboomChatInit(args = false) {
 	window.teemboomChatConfig = {
 		'appId': appID,
 		'appTheme': appTheme,
-		'apiUrl': "https://chat_api.teemboom.com",
-		'socketUrl': "https://chat_socket.teemboom.com",
+		'apiUrl': "https://chat-api.teemboom.com",
+		'socketUrl': "https://chat-socket.teemboom.com",
 		'user': {
 			'id': userID,
 			'username': username,
@@ -56,7 +56,7 @@ function teemboomChatInit(args = false) {
 			'profile_pic': recipientProfilePicture
 		}
 	}
-	const scripts_url = 'https://chat_scripts.teemboom.com'
+	const scripts_url = 'https://chat-app.teemboom.com'
     let theme_js = document.createElement('script');
     theme_js.setAttribute('src', `${scripts_url}/theme/${appTheme}/teemboom_app.js`)
     document.head.appendChild(theme_js);
