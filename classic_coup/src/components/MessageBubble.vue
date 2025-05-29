@@ -1,34 +1,55 @@
 <template>
-  <div class="message-wrapper" :class="{ 'own-message': isOwn }">
-    <div class="message-actions" v-if="isOwn">
-      <button class="action-button" @click="toggleDropdown">
-        <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
-        <div class="dropdown-menu" v-if="showDropdown">
-          <div class="dropdown-item" @click="handleReply">Reply</div>
-          <div class="dropdown-item" @click="handleEdit">Edit</div>
-          <div class="dropdown-item" @click="handleDelete">Delete</div>
-        </div>
-      </button>
-    </div>
-    <div class="message-bubble">
-      <div v-if="message.reply_to" class="reply_message">
-        <span>{{ replyIsOwn ? 'You' : appStore.selectedRoom.recipient.username  }}</span>
-        <p>{{ message.reply_message.content }}</p>
+  <div :id="message._id" class="message-wrapper" :class="{ 'own-message': isOwn }">
+    <template v-if="deletedForMe">
+      <div class="message-actions" v-if="isOwn">
+        <button class="action-button" @click="toggleDropdown">
+          <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
+          <div class="dropdown-menu" v-if="showDropdown">
+            <div class="dropdown-item" @click="handleReply">Reply</div>
+            <div class="dropdown-item" @click="handleEdit">Edit</div>
+            <div class="dropdown-item" @click="handleDelete">Delete</div>
+          </div>
+        </button>
       </div>
-      <div class="message-content">{{ message.content }}</div>
-      <div class="message-header">
-        <span class="timestamp">{{ formatChatTime(message.created) }}</span>
-      </div>
-    </div>
-    <div class="message-actions" v-if="!isOwn">
-      <button class="action-button" @click="toggleDropdown">
-        <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
-        <div class="dropdown-menu" v-if="showDropdown">
-          <div class="dropdown-item" @click="handleReply">Reply</div>
-          <div class="dropdown-item" @click="handleEdit">Edit</div>
-          <div class="dropdown-item" @click="handleDelete">Delete</div>
+      <div class="message-bubble">
+        <a v-if="message.reply_to" class="reply_message" @click.prevent="scrollToMessage(message.reply_to)">
+          <span>{{ replyIsOwn ? 'You' : appStore.selectedRoom.recipient.username  }}</span>
+          <p>{{ isReplyDeleted() ? 'Message Deleted' : message.reply_message.content }}</p>
+        </a>
+        <div class="message-content">
+          {{ message.content }}
         </div>
-      </button>
+        <div class="message-header">
+          <span class="timestamp">{{ formatChatTime(message.created) }}</span>
+        </div>
+      </div>
+      <div class="message-actions" v-if="!isOwn">
+        <button class="action-button" @click="toggleDropdown">
+          <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
+          <div class="dropdown-menu" v-if="showDropdown">
+            <div class="dropdown-item" @click="handleReply">Reply</div>
+            <div class="dropdown-item" @click="handleDelete">Delete</div>
+          </div>
+        </button>
+      </div>
+      <EditMessagePopup
+        :show="showEditPopup"
+        :message="message"
+        @close="showEditPopup = false"
+        @edit="handleEditSubmit"
+      />
+      <DeleteMessagePopup
+        :show="showDeletePopup"
+        :message="message"
+        :isOwn="isOwn"
+        @close="showDeletePopup = false"
+        @delete="handleDeleteConfirm"
+      />
+    </template>
+    <div v-else class="message-bubble deleted-message">
+      <div class="message-content">
+        <i>This message was deleted</i>
+      </div>
     </div>
   </div>
 </template>
@@ -36,8 +57,15 @@
 <script>
 import { formatChatTime as _formatChatTime } from '../helpers';
 import { useAppStore } from '../store/store';
+import EditMessagePopup from './EditMessagePopup.vue';
+import DeleteMessagePopup from './DeleteMessagePopup.vue';
+
 export default {
   name: 'MessageBubble',
+  components: {
+    EditMessagePopup,
+    DeleteMessagePopup
+  },
   props: {
     message: {
       type: Object,
@@ -49,7 +77,10 @@ export default {
       appStore: useAppStore(),
       isOwn: null,
       replyIsOwn: null,
-      showDropdown: false
+      showDropdown: false,
+      showEditPopup: false,
+      showDeletePopup: false,
+      deletedForMe: false,
     }
   },
   methods: {
@@ -64,24 +95,71 @@ export default {
       this.showDropdown = false;
     },
     handleEdit() {
-      this.$emit('edit', this.message);
+      this.showEditPopup = true;
       this.showDropdown = false;
     },
+    handleEditSubmit(editedMessage) {
+      this.appStore.editMessage(editedMessage, this.appStore.selectedRoom.recipient._id)
+    },
     handleDelete() {
-      this.$emit('delete', this.message);
+      this.showDeletePopup = true;
       this.showDropdown = false;
+    },
+    handleDeleteConfirm(message, deleteForEveryone) {
+      this.appStore.deleteMessage(message, deleteForEveryone, this.appStore.selectedRoom.recipient._id)
+    },
+    checkDelete(){
+      if (this.message.deleted){
+        if (this.message.deleted_for === 'all'){
+          return false
+        }
+        if (this.message.deleted_for.indexOf(this.appStore.user._id) === -1) return true
+        return false
+      }else{
+        return true
+      }
+    },
+    isReplyDeleted() {
+      if (this.message.reply_message.deleted){
+        if (this.message.reply_message.deleted_for === 'all'){
+          return true
+        }
+        if (this.message.reply_message.deleted_for.indexOf(this.appStore.user._id) === -1) return false
+        return true
+      }else{
+        return false
+      }
+    },
+    scrollToMessage(messageId) {
+      const element = document.getElementById(messageId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add a highlight effect
+        element.classList.add('highlight-message');
+        setTimeout(() => {
+          element.classList.remove('highlight-message');
+        }, 2000);
+      }
     }
   },
   mounted(){
     this.isOwn = this.message.user_id === this.appStore.user._id ? true : false;
-    this.replyIsOwn = this.message.reply_message.user_id ===  this.appStore.user._id ? true : false;
-    
+    this.replyIsOwn = this.message.reply_message?.user_id === this.appStore.user._id ? true : false;
+    this.deletedForMe = this.checkDelete() 
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.action-button')) {
         this.showDropdown = false;
       }
     });
+  },
+  watch: {
+    message: {
+      handler(newMessage) {
+        this.deletedForMe = this.checkDelete();
+      },
+      deep: true
+    }
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdown);
@@ -122,6 +200,7 @@ export default {
   margin-bottom: 6px;
   font-size: 12px;
   word-break: break-all;
+  cursor: pointer;
 }
 .reply_message span{
   display: block;
@@ -213,5 +292,28 @@ export default {
 
 .dropdown-item:hover {
   background-color: #f5f5f5;
+}
+
+.deleted-message {
+  background-color: #f5f5f5;
+  color: #999;
+  font-style: italic;
+}
+
+.deleted-message .message-content {
+  color: #999;
+}
+
+.highlight-message {
+  animation: highlight 2s ease-out;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: rgba(255, 255, 0, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 </style>

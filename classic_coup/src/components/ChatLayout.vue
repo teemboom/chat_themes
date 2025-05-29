@@ -3,7 +3,7 @@
         <div class="chat-container" :class="{ 'mobile-view': isMobileView }">
             <!-- if it is not a mobile view, it will always show the sidebar and if it is a mobile view, 
                 it will show the sidebar only if there is no selected chat -->
-            <ChatSidebar v-if="!isMobileView || appStore.selectedRoomId" />
+            <ChatSidebar v-if="!isMobileView || !appStore.selectedRoomId" />
             <!-- if it is a mobile view, it will show the chat window only if there is a selected chat -->
             <ChatWindow v-if="appStore.selectedRoomId" @back="handleBack" :is-mobile="isMobileView" />
         </div>
@@ -27,11 +27,6 @@ export default {
             isMobileView: window.innerWidth <= 768,
         }
     },
-    computed: {
-        selectedChat() {
-            return this.chats.find(chat => chat._id === this.selectedChatId)
-        }
-    },
     methods: {
         loadChats() {
         },
@@ -39,13 +34,14 @@ export default {
             this.selectedChatId = chatId
         },
         handleBack() {
-            this.selectedChatId = null
+            this.appStore.selectedRoomId = null
         },
         handleResize() {
             this.isMobileView = window.innerWidth <= 768
         }
     },
     mounted() {
+        window.addEventListener('resize', this.handleResize)
     },
     beforeUnmount() {
         window.removeEventListener('resize', this.handleResize)

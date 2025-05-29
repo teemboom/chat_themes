@@ -172,6 +172,60 @@ export const useAppStore = defineStore('appStore', {
         this.incrementUnreadCount(msg.room_id);
       }
     },
+    editMessage(msg, recipient_id){
+      fetch(`${this.apiUrl}/edit_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: this.user._id,
+          app_id: this.appId,
+          message_id: msg._id,
+          content: msg.content
+        })
+      })
+      .then(res => {return res.json()})
+      .then(res=>{
+        this.socket.emit('edit_message', {room_id: recipient_id, data: res.data })
+        this.updateMessageContent(res.data.message_id, res.data.content)
+      })
+    },
+    updateMessageContent(message_id, content){
+      this.messages = this.messages.map(message => {
+        if (message._id === message_id){
+          return { ...message, content: content}
+        }
+        return message
+      })
+    },
+    updateEntireMessage(message){
+      this.messages = this.messages.map(msg => {
+        if (msg._id === message._id){
+          return message
+        }
+        return msg
+      })
+    },
+
+    deleteMessage(msg, deleteForEveryone, recipient_id){
+      fetch(`${this.apiUrl}/delete_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: this.user._id,
+          message_id: msg._id,
+          delete_for_all: deleteForEveryone
+        })
+      })
+      .then(res => {return res.json()})
+      .then(res=>{
+        this.updateEntireMessage(res.data)
+        if (deleteForEveryone) this.socket.emit('delete_message', {room_id: recipient_id, data: res.data })
+      })
+    },
     incrementUnreadCount(roomId) {
       this.rooms = this.rooms.map(room => {
         if (room._id === roomId) {
@@ -210,9 +264,16 @@ export const useAppStore = defineStore('appStore', {
       this.socket.on('receive_message', (msg)=>{
         this.addMessageToRoom(msg)
       })
+      this.socket.on('edit_message', (msg)=>{
+        this.updateMessageContent(msg.message_id, msg.content)
+      })
+      this.socket.on('delete_message', (msg)=>{
+        console.log(msg)
+        this.updateEntireMessage(msg)
+      })
     },
-    socketSendMessage(recipient_id, message){
-      this.socket.emit('send_message', {recipient_id, message})
+    socketSendMessage(room_id, message){
+      this.socket.emit('send_message', {room_id, message})
     }
   },
 })
