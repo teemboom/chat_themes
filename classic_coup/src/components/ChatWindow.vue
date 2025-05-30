@@ -82,7 +82,7 @@ export default {
         this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
       }
     },
-    handleSendMessage(content) {
+    handleSendMessage(content, attachments) {
       // We save this in the variable so even if the state changes while this function is running it won't affect the end result
       const recipient = this.appStore.selectedRoom.recipient
       fetch(`${this.appStore.apiUrl}/new_message`, {
@@ -93,7 +93,8 @@ export default {
 				'room_id': this.appStore.selectedRoomId,
 				'user_id': this.appStore.user._id,
 				'content': content,
-				'reply_to': this.replyTo?._id || null
+				'reply_to': this.replyTo?._id || null,
+        'attachments': attachments
 			})
 		})
 			.then(res => { return res.json() })

@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { formatChatTime as _formatChatTime } from '../helpers';
+import { formatChatTime as _formatChatTime } from '../utils/helpers';
 export default {
   name: 'ChatItem',
   props: {

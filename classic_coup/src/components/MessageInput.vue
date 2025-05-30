@@ -1,5 +1,6 @@
 <template>
   <div class="message-input-container">
+    <LinkPreview v-for="(item, index) in detectedUrls" :key="item" :url="item" layout="w" @success="attachPreview" />
     <div v-if="reply" class="reply-preview">
       <div class="reply-content">
         <span class="reply-text">{{ reply.content }}</span>
@@ -33,45 +34,79 @@
 </template>
 
 <script>
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
+// These are the tools we need to make our chat work
+import EmojiPicker from 'vue3-emoji-picker'  // This helps us add fun emoji faces to our messages
+import 'vue3-emoji-picker/css'  // This makes the emoji picker look pretty
+import { detectUrls } from '../utils/helpers'  // This helps us find website links in our messages
+import LinkPreview from './LinkPreview.vue'  // This shows a preview of websites we share
+
 export default {
-  name: 'MessageInput',
-  emits: ['send-message', 'cancel-reply'],
+  name: 'MessageInput',  // This is the name of our chat box component
+  emits: ['send-message', 'cancel-reply'],  // These are the special messages our component can send to its parent
   props: {
-    reply: Object
+    reply: Object  // This lets us know if we're replying to someone else's message
   },
   components: {
-    EmojiPicker
+    EmojiPicker,  // We're using the emoji picker tool
+    LinkPreview   // We're using the link preview tool
   },
   data() {
     return {
-      message: '',
-      showEmojiPicker: false
+      message: '',  // This is where we store what the user types
+      previews: [],  // This keeps track of website previews
+      showEmojiPicker: false,  // This tells us if we should show the emoji picker
+      detectedUrls: [],  // This keeps track of website links we find
+      detectUrlTimeout: null  // This helps us wait before checking for website links
     }
   },
   mounted() {
+    // When our chat box appears, we start listening for clicks outside of it
     document.addEventListener('click', this.handleClickOutside)
   },
   beforeUnmount() {
+    // When our chat box disappears, we stop listening for clicks
     document.removeEventListener('click', this.handleClickOutside)
   },
   methods: {
     autoResize() {
+      // This makes our typing box grow bigger as we type more
       const textareaEl = this.$refs.textarea
       textareaEl.style.height = 'auto'
       textareaEl.style.height = textareaEl.scrollHeight + 'px'
+
+      // We wait a little bit before checking for website links
+      if (this.detectUrlTimeout){
+        clearInterval(this.detectUrlTimeout)
+      }
+      this.detectUrlTimeout = setTimeout(() => {
+        this.detectedUrls = detectUrls(this.message)
+      }, 4000);
     },
+    
     handleEnter(event) {
+      // When we press Enter, we send the message (unless we're holding Shift)
       if (!event.shiftKey) {
         this.sendMessage()
       }
     },
+    attachPreview(data){
+      // This adds a preview of a website we shared
+      data.type = 'preview'
+      const find = this.previews.find(item => item.url === data.url)
+      if (!find) this.previews.push(data)
+    },
     sendMessage() {
+      // This sends our message when we click the send button
       const trimmedMessage = this.message.trim()
+      // We make sure we only keep previews for links that are still in our message
+      this.previews = this.previews.filter(item => this.detectedUrls.includes(item.url))
+      const attachments = [...this.previews]
       if (trimmedMessage) {
-        this.$emit('send-message', trimmedMessage)
+        // We send the message and any website previews to our parent
+        this.$emit('send-message', trimmedMessage, attachments)
+        // We clear everything and start fresh
         this.message = ''
+        this.detectedUrls = []
         if (this.$refs.textarea) {
           this.$refs.textarea.style.height = 'auto'
         }
@@ -79,12 +114,15 @@ export default {
       }
     },
     toggleEmojiPicker() {
+      // This shows or hides the emoji picker
       this.showEmojiPicker = !this.showEmojiPicker
     },
     onSelectEmoji(emoji) {
+      // This adds the emoji we picked to our message
       this.message += emoji.i
     },
     handleClickOutside(event) {
+      // This closes the emoji picker when we click somewhere else
       const emojiPicker = this.$el.querySelector('.emoji-picker')
       if (this.showEmojiPicker && emojiPicker && !emojiPicker.contains(event.target)) {
         this.showEmojiPicker = false
@@ -107,7 +145,8 @@ export default {
   justify-content: space-between;
   padding: 8px 12px;
   background-color: #f5f5f5;
-  border-radius: 8px;
+  border-radius: 3px;
+  border-left: 4px #333 solid;
   margin-bottom: 8px;
 }
 

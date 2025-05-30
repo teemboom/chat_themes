@@ -16,8 +16,26 @@
           <span>{{ replyIsOwn ? 'You' : appStore.selectedRoom.recipient.username  }}</span>
           <p>{{ isReplyDeleted() ? 'Message Deleted' : message.reply_message.content }}</p>
         </a>
-        <div class="message-content">
-          {{ message.content }}
+        <div class="message-content" v-html="formatMessageContent(message.content)"></div>
+        <div v-if="message.attachments && message.attachments.length > 0" class="attachments">
+          <div v-for="(attachment, index) in message.attachments" :key="index" class="attachment">
+            <!-- Preview type attachment -->
+            <div v-if="attachment.type === 'preview'" class="preview-card">
+              <img v-if="attachment.image" :src="attachment.image" :alt="attachment.title" class="preview-image" @error="attachment.image = null">
+              <div class="preview-content">
+                <h4 class="preview-title">{{ attachment.title }}</h4>
+                <p class="preview-description">{{ attachment.description }}</p>
+              </div>
+            </div>
+            <!-- Image type attachment -->
+            <div v-else-if="attachment.type === 'image'" class="image-attachment">
+              <img v-if="attachment.url" :src="attachment.url" :alt="attachment.name" class="attachment-image" @error="attachment.url = null">
+              <div v-if="attachment.url" class="image-info">
+                <span class="image-name">{{ attachment.name }}</span>
+                <span class="image-size">{{ formatFileSize(attachment.size) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="message-header">
           <span class="timestamp">{{ formatChatTime(message.created) }}</span>
@@ -55,7 +73,7 @@
 </template>
 
 <script>
-import { formatChatTime as _formatChatTime } from '../helpers';
+import { formatChatTime as _formatChatTime } from '../utils/helpers';
 import { useAppStore } from '../store/store';
 import EditMessagePopup from './EditMessagePopup.vue';
 import DeleteMessagePopup from './DeleteMessagePopup.vue';
@@ -86,6 +104,14 @@ export default {
   methods: {
     formatChatTime(arg){
       return _formatChatTime(arg)
+    },
+    formatMessageContent(content) {
+      // URL regex pattern
+      const urlPattern = /(https?:\/\/[^\s]+)/g;
+      // Replace URLs with anchor tags
+      return content.replace(urlPattern, url => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="message-link">${url}</a>`;
+      });
     },
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
@@ -140,7 +166,14 @@ export default {
           element.classList.remove('highlight-message');
         }, 2000);
       }
-    }
+    },
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
   },
   mounted(){
     this.isOwn = this.message.user_id === this.appStore.user._id ? true : false;
@@ -235,6 +268,15 @@ export default {
   word-break: break-all;
 }
 
+.message-link {
+  color: #2196f3;
+  text-decoration: none;
+}
+
+.message-link:hover {
+  text-decoration: underline;
+}
+
 .message-actions {
   position: relative;
   display: flex;
@@ -315,5 +357,79 @@ export default {
   100% {
     background-color: transparent;
   }
+}
+
+.attachments {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.attachment {
+  margin-bottom: 8px;
+}
+
+.preview-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.preview-image {
+  width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+  padding-top: 5px;
+}
+
+.preview-content {
+  padding: 12px;
+}
+
+.preview-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.preview-description {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.image-attachment {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.attachment-image {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.image-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.05);
+  font-size: 12px;
+  color: #666;
+}
+
+.image-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+
+.image-size {
+  color: #999;
 }
 </style>

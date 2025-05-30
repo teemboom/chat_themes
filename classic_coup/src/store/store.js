@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { io } from 'socket.io-client'
-import { scrollToBottom } from '../utils/scroll'
+import { scrollToBottom } from '../utils/helpers'
 
 export const useAppStore = defineStore('appStore', {
   // State
