@@ -90,7 +90,7 @@ export const useAppStore = defineStore('appStore', {
               title: recipient?.username || 'Unknown User',
               recipient: recipient || null,
               users: room.users,
-              unreadCount: 0,
+              unread_count: room.unread_count,
               recentMessage: room.recent_message || null,
               createdAt: room.created,
               updatedAt: room.updated
@@ -147,9 +147,9 @@ export const useAppStore = defineStore('appStore', {
       // Mark room as read when selected
       this.markRoomAsRead(room_id)
     },
-    updateRoomRecentMessage(room_id, message){
+    updateRoomRecentMessage(message){
       this.rooms = this.rooms.map(room => {
-        if (room._id === room_id) {
+        if (room._id === message.room_id) {
           return { ...room,  recentMessage: message}
         }
         return room
@@ -164,10 +164,11 @@ export const useAppStore = defineStore('appStore', {
     addMessageToRoom(msg) {
       if (this.selectedRoomId === msg.room_id) {
         this.messages.push(msg);
-        this.updateRoomRecentMessage(this.selectedRoomId, msg);
+        this.updateRoomRecentMessage(msg);
         this.scrollToBottom();
         this.updateUserLastSeenInRoom(msg.room_id)
       } else {
+        this.updateRoomRecentMessage(msg);
         // Increment unread count for other rooms
         this.incrementUnreadCount(msg.room_id);
       }
@@ -229,7 +230,7 @@ export const useAppStore = defineStore('appStore', {
     incrementUnreadCount(roomId) {
       this.rooms = this.rooms.map(room => {
         if (room._id === roomId) {
-          return { ...room, unreadCount: (room.unreadCount || 0) + 1 }
+          return { ...room, unread_count: (room.unread_count || 0) + 1 }
         }
         return room
       })
@@ -237,7 +238,7 @@ export const useAppStore = defineStore('appStore', {
     markRoomAsRead(roomId) {
       this.rooms = this.rooms.map(room => {
         if (room._id === roomId) {
-          return { ...room, unreadCount: 0 }
+          return { ...room, unread_count: 0 }
         }
         return room
       })

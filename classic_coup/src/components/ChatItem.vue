@@ -8,7 +8,7 @@
       </div>
       <div class="message-row">
         <div class="last-message">{{ room?.recentMessage?.content || '.' }}</div>
-        <div v-if="room.unreadCount > 0" class="unread-badge">{{ room.unreadCount }}</div>
+        <div v-if="room.unread_count > 0" class="unread-badge">{{ room.unread_count }}</div>
       </div>
     </div>
   </div>
