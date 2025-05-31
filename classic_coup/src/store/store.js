@@ -90,7 +90,7 @@ export const useAppStore = defineStore('appStore', {
               title: recipient?.username || 'Unknown User',
               recipient: recipient || null,
               users: room.users,
-              unread_count: room.unread_count,
+              unread_count: room.unread_count || 0,
               recentMessage: room.recent_message || null,
               createdAt: room.created,
               updatedAt: room.updated
