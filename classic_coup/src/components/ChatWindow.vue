@@ -66,7 +66,8 @@ export default {
         },
         body: JSON.stringify({
           room_id: this.appStore.selectedRoomId,
-          app_id: this.appStore.appId
+          app_id: this.appStore.appId,
+          user_id: this.appStore.user._id
         })
       })
         .then(response => response.json())
