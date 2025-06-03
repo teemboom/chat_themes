@@ -1,7 +1,7 @@
 <!-- MessageBubble Component: Displays individual chat messages with support for replies, attachments, and actions -->
 <template>
   <!-- Main message container with dynamic styling based on message ownership and group chat context -->
-  <div :id="message._id" class="message-wrapper" :class="{ 'own-message': isOwn, 'smaller_margin_bottom': isGroupMessage && !shouldShowAvatar }">
+  <div :id="message._id" class="message-wrapper" :class="{ 'own-message': isOwn }">
     <!-- Conditional rendering based on whether message is deleted for current user -->
     <template v-if="deletedForMe">
       <!-- Action menu for own messages (reply, edit, delete) -->
@@ -259,9 +259,6 @@ export default {
   display: flex;
   margin-bottom: 4px;
   align-items: flex-start;
-}
-.message-wrapper.smaller_margin_bottom {
-  margin-top: -8px;
 }
 .message-wrapper.own-message {
   justify-content: flex-end;
