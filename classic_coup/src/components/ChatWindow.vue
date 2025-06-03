@@ -20,7 +20,7 @@
           </div>
         </div>
       </template>
-      <MessageBubble v-else v-for="message in appStore.messages" :key="message.id" :message="message" @reply="setReplyMessage" />
+      <MessageBubble v-else v-for="(message, index) in appStore.messages" :previous-message="appStore.messages[index - 1]" :key="message.id" :message="message" @reply="setReplyMessage" />
     </div>
 
     <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo=null" />

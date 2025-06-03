@@ -151,7 +151,7 @@ export default {
 }
 
 .chat-sidebar {
-  width: 300px;
+  width: 400px;
   height: 100%;
   border-right: 1px solid #e0e0e0;
   display: flex;

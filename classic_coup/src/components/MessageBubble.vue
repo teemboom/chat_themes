@@ -1,6 +1,10 @@
+<!-- MessageBubble Component: Displays individual chat messages with support for replies, attachments, and actions -->
 <template>
-  <div :id="message._id" class="message-wrapper" :class="{ 'own-message': isOwn }">
+  <!-- Main message container with dynamic styling based on message ownership and group chat context -->
+  <div :id="message._id" class="message-wrapper" :class="{ 'own-message': isOwn, 'smaller_margin_bottom': isGroupMessage && !shouldShowAvatar }">
+    <!-- Conditional rendering based on whether message is deleted for current user -->
     <template v-if="deletedForMe">
+      <!-- Action menu for own messages (reply, edit, delete) -->
       <div class="message-actions" v-if="isOwn">
         <button class="action-button" @click="toggleDropdown">
           <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
@@ -11,12 +15,30 @@
           </div>
         </button>
       </div>
+
+      <!-- User avatar display for group messages -->
+      <div v-if="isGroupMessage && shouldShowAvatar" class="user-avatar-container">
+        <img v-if="messageUser?.profile_pic" :src="messageUser.profile_pic" :alt="messageUser.username" class="user-avatar">
+        <div v-else class="user-avatar-placeholder">{{ messageUser?.username?.charAt(0)?.toUpperCase() }}</div>
+      </div>
+      <!-- Avatar spacing placeholder for consecutive messages from same user -->
+      <div v-else-if="isGroupMessage && !shouldShowAvatar" class="user-avatar-container placeholder"></div>
+
+      <!-- Main message content container -->
       <div class="message-bubble">
+        <!-- Username display in group chats -->
+        <div v-if="isGroupMessage && shouldShowAvatar" class="username">{{ messageUser?.username }}</div>
+
+        <!-- Reply message preview with click-to-scroll functionality -->
         <a v-if="message.reply_to" class="reply_message" @click.prevent="scrollToMessage(message.reply_to)">
           <span>{{ replyIsOwn ? 'You' : appStore.selectedRoom.recipient.username  }}</span>
           <p>{{ isReplyDeleted() ? 'Message Deleted' : message.reply_message.content }}</p>
         </a>
+
+        <!-- Main message text with automatic link formatting -->
         <div class="message-content" v-html="formatMessageContent(message.content)"></div>
+
+        <!-- Attachments section supporting preview cards and images -->
         <div v-if="message.attachments && message.attachments.length > 0" class="attachments">
           <div v-for="(attachment, index) in message.attachments" :key="index" class="attachment">
             <!-- Preview type attachment -->
@@ -37,10 +59,14 @@
             </div>
           </div>
         </div>
+
+        <!-- Message timestamp display -->
         <div class="message-header">
           <span class="timestamp">{{ formatChatTime(message.created) }}</span>
         </div>
       </div>
+
+      <!-- Action menu for other users' messages (reply, delete) -->
       <div class="message-actions" v-if="!isOwn">
         <button class="action-button" @click="toggleDropdown">
           <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
@@ -50,12 +76,16 @@
           </div>
         </button>
       </div>
+
+      <!-- Edit message modal component -->
       <EditMessagePopup
         :show="showEditPopup"
         :message="message"
         @close="showEditPopup = false"
         @edit="handleEditSubmit"
       />
+
+      <!-- Delete message confirmation modal -->
       <DeleteMessagePopup
         :show="showDeletePopup"
         :message="message"
@@ -64,6 +94,8 @@
         @delete="handleDeleteConfirm"
       />
     </template>
+
+    <!-- Deleted message placeholder -->
     <div v-else class="message-bubble deleted-message">
       <div class="message-content">
         <i>This message was deleted</i>
@@ -88,6 +120,10 @@ export default {
     message: {
       type: Object,
       required: true
+    },
+    previousMessage: {
+      type: Object,
+      default: null
     }
   },
   data() {
@@ -99,6 +135,17 @@ export default {
       showEditPopup: false,
       showDeletePopup: false,
       deletedForMe: false,
+      messageUser: null,
+    }
+  },
+  computed: {
+    shouldShowAvatar() {
+      if (!this.appStore.selectedRoom?.type === 'group' || this.isOwn) return false;
+      if (!this.previousMessage) return true;
+      return this.previousMessage.user_id !== this.message.user_id;
+    },
+    isGroupMessage() {
+      return !this.isOwn && this.appStore.selectedRoom?.type === 'group';
     }
   },
   methods: {
@@ -174,11 +221,17 @@ export default {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
+    findMessageUser() {
+      if (this.appStore.selectedRoom?.type === 'group' && this.appStore.selectedRoom?.users) {
+        this.messageUser = this.appStore.selectedRoom.users.find(user => user._id === this.message.user_id);
+      }
+    },
   },
   mounted(){
     this.isOwn = this.message.user_id === this.appStore.user._id ? true : false;
     this.replyIsOwn = this.message.reply_message?.user_id === this.appStore.user._id ? true : false;
-    this.deletedForMe = this.checkDelete() 
+    this.deletedForMe = this.checkDelete();
+    this.findMessageUser();
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.action-button')) {
@@ -190,6 +243,7 @@ export default {
     message: {
       handler(newMessage) {
         this.deletedForMe = this.checkDelete();
+        this.findMessageUser();
       },
       deep: true
     }
@@ -203,26 +257,69 @@ export default {
 <style scoped>
 .message-wrapper {
   display: flex;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+  align-items: flex-start;
 }
-
+.message-wrapper.smaller_margin_bottom {
+  margin-top: -8px;
+}
 .message-wrapper.own-message {
   justify-content: flex-end;
 }
 
+.user-avatar-container {
+  margin-right: 8px;
+  margin-top: 4px;
+  width: 32px;
+}
+
+.user-avatar-container.placeholder {
+  visibility: hidden;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.username {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 4px;
+}
+
 .message-bubble {
   max-width: 70%;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 9px;
+  padding-bottom: 6px;
+  border-radius: 8px;
   background-color: white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .own-message .message-bubble {
   background-color: #e3f2fd;
-  align-items: end;
+  justify-content: flex-end;
 }
 
 .reply_message{
@@ -245,8 +342,10 @@ export default {
 
 .message-header {
   display: flex;
-  justify-content: end;
   align-items: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-left: 8px;
 }
 
 .sender {
