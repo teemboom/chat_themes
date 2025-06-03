@@ -85,15 +85,26 @@ export const useAppStore = defineStore('appStore', {
           this.rooms = res.data.map(room => {
             // Find the recipient in this room: the user who is not the current user
             const recipient = room.users.find(user => user._id !== this.user._id)
+            
+            // For DM rooms, create details object if it doesn't exist
+            if (room.type === 'dm' && !room.details) {
+              room.details = {
+                name: recipient?.username || 'Unknown User',
+                image_url: recipient?.profile_pic || null
+              }
+            }
+
             return {
               _id: room._id,
-              title: recipient?.username || 'Unknown User',
               recipient: recipient || null,
+              transmit: room.users.filter(user => user._id !== this.user._id).map(user => user._id), // An array of user ids that are in the room
               users: room.users,
               unread_count: room.unread_count || 0,
               recentMessage: room.recent_message || null,
               createdAt: room.created,
-              updatedAt: room.updated
+              updatedAt: room.updated,
+              type: room.type,
+              details: room.details
             }
           })
 
@@ -117,7 +128,6 @@ export const useAppStore = defineStore('appStore', {
         this.selectedRoom = existingRoom
         this.selectedRoomId = existingRoom._id
       }else{ // If not found locally, meaning this is their first time meeting, create a new room (rare)
-        console.log("new_room")
         await fetch(`${this.apiUrl}/create_room`, {
           method: 'POST',
           headers: {
@@ -273,8 +283,8 @@ export const useAppStore = defineStore('appStore', {
         this.updateEntireMessage(msg)
       })
     },
-    socketSendMessage(room_id, message){
-      this.socket.emit('send_message', {room_id, message})
+    socketSendMessage(room_ids, message){
+      this.socket.emit('send_message', {room_ids: room_ids, message: message})
     }
   },
 })

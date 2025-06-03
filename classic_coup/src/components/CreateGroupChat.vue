@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click="closeModal">
+  <div class="modal-overlay" @click="closeModal">
     <div class="modal-content" @click.stop>
       <h2>Create New Group Chat</h2>
       <div class="form-group">
@@ -56,12 +56,6 @@
 import { useAppStore } from '../store/store'
 export default {
   name: 'CreateGroupChat',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true
-    }
-  },
   data() {
     return {
       appStore: useAppStore(),
@@ -104,11 +98,22 @@ export default {
     },
     createGroupChat() {
       if (this.isValid) {
-        console.log('create', {
-          name: this.roomName,
-          users: this.selectedUsers
+        let users = this.selectedUsers.map(user => user._id)
+        users.push(this.appStore.user._id)
+        fetch(`${this.appStore.apiUrl}/create_group_chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users })
         })
-        this.closeModal()
+        .then(response => response.json())
+        .then(res => {
+            if (res.status) {
+                this.appStore.getUserRooms()
+                this.closeModal()
+            }
+        })
       }
     }
   },

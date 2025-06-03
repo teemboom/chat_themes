@@ -5,8 +5,8 @@
         ← Back
       </button>
       <div class="chat-title">
-        <img class="avatar" :src=appStore.selectedRoom.recipient.profile_pic>
-        <span>{{ appStore.selectedRoom.title }}</span>
+        <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
+        <span>{{ appStore.selectedRoom.details.name }}</span>
       </div>
     </div>
 
@@ -85,7 +85,7 @@ export default {
     },
     handleSendMessage(content, attachments) {
       // We save this in the variable so even if the state changes while this function is running it won't affect the end result
-      const recipient = this.appStore.selectedRoom.recipient
+      const transmit = this.appStore.selectedRoom.transmit
       fetch(`${this.appStore.apiUrl}/new_message`, {
 			'headers': { 'Content-type': 'application/json' },
 			'method': 'POST',
@@ -104,13 +104,15 @@ export default {
 					return
 				}
         this.appStore.addMessageToRoom(res.data)
-        this.appStore.socketSendMessage(recipient._id, res.data)
+        this.appStore.socketSendMessage(transmit, res.data)
 			})
     },
     setReplyMessage(message){
       this.replyTo = message
+    },
+    handleImageError(e) {
+      e.target.src = this.appStore.selectedRoom.details.type === 'group' ? '/group-placeholder.png' : '/person-placeholder.png'
     }
-    
   },
   watch:{
     'appStore.selectedRoom'(newVal){

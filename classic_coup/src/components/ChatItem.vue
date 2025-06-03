@@ -1,9 +1,9 @@
 <template>
   <div class="chat-item" :class="{ 'selected': isSelected }">
-    <img class="avatar" :src=room.recipient.profile_pic>
+    <img class="avatar" :src="room.details.image_url || (room.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
     <div class="chat-info">
       <div class="chat-header">
-        <span class="chat-name">{{ room.title }}</span>
+        <span class="chat-name">{{ room.details.name }}</span>
         <span class="chat-time">{{ formatChatTime(room.recentMessage?.created) }}</span>
       </div>
       <div class="message-row">
@@ -32,6 +32,9 @@ export default {
     formatChatTime(arg){
       if (!arg) return ''
       return _formatChatTime(arg)
+    },
+    handleImageError(e) {
+      e.target.src = this.room.details.type === 'group' ? '/group-placeholder.png' : '/person-placeholder.png'
     }
   }
 }

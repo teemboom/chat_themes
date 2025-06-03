@@ -29,7 +29,7 @@
       />
     </div>
     <CreateGroupChat
-      :is-open="isCreateGroupChatOpen"
+      v-if="isCreateGroupChatOpen"
       @close="closeCreateGroupChat"
       @create="handleCreateGroupChat"
     />
@@ -58,7 +58,7 @@ export default {
   computed: {
     filteredRooms() {
       return this.appStore.rooms.filter(room =>
-        room.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+        room.details.name.toLowerCase().includes(this.searchQuery.toLowerCase())
       )
     }
   },
