@@ -306,7 +306,7 @@ export const useAppStore = defineStore('appStore', {
           .then(res => { return res.json() })
           .then(res => {
             if (!res.status) return
-            room = this.transformRoomData(res.data)
+            let room = this.transformRoomData(res.data)
             this.rooms.unshift(room)
           })
       })
