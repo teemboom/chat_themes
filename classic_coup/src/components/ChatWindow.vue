@@ -4,9 +4,12 @@
       <button v-if="isMobile" class="back-button" @click="$emit('back')">
         ← Back
       </button>
-      <div class="chat-title">
+      <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
         <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
-        <span>{{ appStore.selectedRoom.details.name }}</span>
+        <div class="chat-title-text">
+          <span>{{ appStore.selectedRoom.details.name }}</span>
+          <span v-if="showTitleDetails" class="chat-title-text-status">Click For Details</span>
+        </div>
       </div>
     </div>
 
@@ -24,6 +27,11 @@
     </div>
 
     <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo=null" />
+
+    <RoomSidebar
+      v-if="sidebarOpen"
+      @close="sidebarOpen = false"
+    />
   </div>
 </template>
 
@@ -31,12 +39,14 @@
 import { useAppStore } from '../store/store'
 import MessageBubble from './MessageBubble.vue'
 import MessageInput from './MessageInput.vue'
+import RoomSidebar from './RoomSidebar.vue'
 
 export default {
   name: 'ChatWindow',
   components: {
     MessageBubble,
-    MessageInput
+    MessageInput,
+    RoomSidebar
   },
   props: {
     isMobile: {
@@ -49,7 +59,36 @@ export default {
     return {
       appStore: useAppStore(),
       replyTo: null,
-      isLoading: true
+      isLoading: true,
+      sidebarOpen: false,
+      showTitleDetails: true
+    }
+  },
+  computed: {
+    sidebarRoom() {
+      // For DM, show recipient info; for group, show group details
+      if (!this.appStore.selectedRoom) return {}
+      if (this.appStore.selectedRoom.type === 'dm') {
+        // Use recipient info for DM
+        return {
+          ...this.appStore.selectedRoom.details,
+          type: 'dm',
+          status: this.appStore.selectedRoom.recipient?.status || '',
+        }
+      } else {
+        // Use group details for group
+        return {
+          ...this.appStore.selectedRoom.details,
+          type: 'group',
+        }
+      }
+    },
+    sidebarMembers() {
+      // For group, show users; for DM, empty
+      if (this.appStore.selectedRoom?.type === 'group') {
+        return this.appStore.selectedRoom.users || []
+      }
+      return []
     }
   },
   methods: {
@@ -118,11 +157,18 @@ export default {
     'appStore.selectedRoom'(newVal){
       this.replyTo = null
       this.loadMessages()
+      this.showTitleDetails = true
+      setTimeout(() => {
+        this.showTitleDetails = false
+      }, 3000);
     }
   },
   mounted() {
     this.loadMessages()
     this.appStore.setMessagesContainerRef(this.$refs.messagesContainer)
+    setTimeout(() => {
+      this.showTitleDetails = false
+    }, 3000);
   },
   beforeUnmount() {
     this.appStore.setMessagesContainerRef(null)
@@ -183,6 +229,16 @@ export default {
   animation: fadeIn 0.3s ease-in;
 }
 
+.chat-title-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-title-text-status {
+  font-size: 10px;
+  color: #666;
+  margin-top: 2px;
+}
 
 .loading-avatar {
   width: 40px;

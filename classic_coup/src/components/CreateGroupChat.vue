@@ -111,6 +111,7 @@ export default {
         .then(res => {
             if (res.status) {
                 this.appStore.getUserRooms()
+                this.appStore.socket.emit('new_room', {room_ids: user_ids, room: res.data})
                 this.closeModal()
             }
         })

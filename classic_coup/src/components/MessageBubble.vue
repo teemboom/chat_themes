@@ -299,6 +299,7 @@ export default {
   font-weight: 500;
   color: #666;
   margin-bottom: 4px;
+  width: 100%;
 }
 
 .message-bubble {

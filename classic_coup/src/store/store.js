@@ -16,7 +16,8 @@ export const useAppStore = defineStore('appStore', {
     isMobile: null,
     messages: [],
     socket: null,
-    messagesContainerRef: null
+    messagesContainerRef: null,
+    isMobileView: window.innerWidth <= 768
   }),
 
   actions: {
@@ -28,7 +29,11 @@ export const useAppStore = defineStore('appStore', {
       this.recipient = config.recipient
       this.socket = io(config.socketUrl)
       this.loadConfig()
+      window.addEventListener('resize', this.handleResize)
       return true
+    },
+    handleResize() {
+      this.isMobileView = window.innerWidth <= 768
     },
     async loadConfig() {
       fetch(`${this.apiUrl}/teemboom_config`, {
@@ -67,6 +72,31 @@ export const useAppStore = defineStore('appStore', {
           }
         })
     },
+    transformRoomData(room) {
+      // Find the recipient in this room: the user who is not the current user
+      const recipient = room.users.find(user => user._id !== this.user._id)
+
+      // For DM rooms, create details object if it doesn't exist
+      if (room.type === 'dm' && !room.details) {
+        room.details = {
+          name: recipient?.username || 'Unknown User',
+          image_url: recipient?.profile_pic || null
+        }
+      }
+
+      return {
+        _id: room._id,
+        recipient: recipient || null,
+        transmit: room.users.filter(user => user._id !== this.user._id).map(user => user._id), // An array of user ids that are in the room
+        users: room.users,
+        unread_count: room.unread_count || 0,
+        recentMessage: room.recent_message || null,
+        createdAt: room.created,
+        updatedAt: room.updated,
+        type: room.type,
+        details: room.details
+      }
+    },
     async getUserRooms() {
       await fetch(`${this.apiUrl}/get_user_rooms`, {
         method: 'POST',
@@ -82,39 +112,15 @@ export const useAppStore = defineStore('appStore', {
         .then(res => {
           if (!res.status) console.error('error loading rooms')
           // Transform the data to show other user's name as title
-          this.rooms = res.data.map(room => {
-            // Find the recipient in this room: the user who is not the current user
-            const recipient = room.users.find(user => user._id !== this.user._id)
-            
-            // For DM rooms, create details object if it doesn't exist
-            if (room.type === 'dm' && !room.details) {
-              room.details = {
-                name: recipient?.username || 'Unknown User',
-                image_url: recipient?.profile_pic || null
-              }
-            }
-
-            return {
-              _id: room._id,
-              recipient: recipient || null,
-              transmit: room.users.filter(user => user._id !== this.user._id).map(user => user._id), // An array of user ids that are in the room
-              users: room.users,
-              unread_count: room.unread_count || 0,
-              recentMessage: room.recent_message || null,
-              createdAt: room.created,
-              updatedAt: room.updated,
-              type: room.type,
-              details: room.details
-            }
-          })
+          this.rooms = res.data.map(room => this.transformRoomData(room))
 
           // If a recipient is not defined, simply enter the user into the most recently updated room of theirs.
-          if (!this.recipient) {
+          if (!this.recipient && !this.isMobileView) {
             if (this.rooms.length > 0) {
               this.selectedRoom = this.rooms[0]
               this.selectedRoomId = this.rooms[0]._id
             }
-          }else{
+          } else {
             this.findRecipientRoom()
           }
         })
@@ -124,10 +130,10 @@ export const useAppStore = defineStore('appStore', {
       if (!this.recipient) return
       // If the room is found locally in the already fetched rooms, use it
       const existingRoom = this.rooms.find(room => room.recipient._id === this.recipient._id)
-      if (existingRoom){
+      if (existingRoom) {
         this.selectedRoom = existingRoom
         this.selectedRoomId = existingRoom._id
-      }else{ // If not found locally, meaning this is their first time meeting, create a new room (rare)
+      } else { // If not found locally, meaning this is their first time meeting, create a new room (rare)
         await fetch(`${this.apiUrl}/create_room`, {
           method: 'POST',
           headers: {
@@ -139,10 +145,12 @@ export const useAppStore = defineStore('appStore', {
             app_id: this.appId
           })
         })
-        .then(res => {return res.json()})
-        .then(res=>{
-          if (res.status) this.getUserRooms()
-        })
+          .then(res => { return res.json() })
+          .then(res => {
+            if (res.status) this.getUserRooms()
+            // If a new room is created, emit to the recipient to update their interface with the new room
+            this.socket.emit('new_room', { room_id: this.recipient._id, room: res.data })
+          })
       }
     },
     async loadUserRooms() {
@@ -157,10 +165,10 @@ export const useAppStore = defineStore('appStore', {
       // Mark room as read when selected
       this.markRoomAsRead(room_id)
     },
-    updateRoomRecentMessage(message){
+    updateRoomRecentMessage(message) {
       this.rooms = this.rooms.map(room => {
         if (room._id === message.room_id) {
-          return { ...room,  recentMessage: message}
+          return { ...room, recentMessage: message }
         }
         return room
       })
@@ -183,7 +191,7 @@ export const useAppStore = defineStore('appStore', {
         this.incrementUnreadCount(msg.room_id);
       }
     },
-    editMessage(msg, recipient_id){
+    editMessage(msg, recipient_id) {
       fetch(`${this.apiUrl}/edit_message`, {
         method: 'POST',
         headers: {
@@ -196,30 +204,30 @@ export const useAppStore = defineStore('appStore', {
           content: msg.content
         })
       })
-      .then(res => {return res.json()})
-      .then(res=>{
-        this.socket.emit('edit_message', {room_id: recipient_id, data: res.data })
-        this.updateMessageContent(res.data.message_id, res.data.content)
-      })
+        .then(res => { return res.json() })
+        .then(res => {
+          this.socket.emit('edit_message', { room_id: recipient_id, data: res.data })
+          this.updateMessageContent(res.data.message_id, res.data.content)
+        })
     },
-    updateMessageContent(message_id, content){
+    updateMessageContent(message_id, content) {
       this.messages = this.messages.map(message => {
-        if (message._id === message_id){
-          return { ...message, content: content}
+        if (message._id === message_id) {
+          return { ...message, content: content }
         }
         return message
       })
     },
-    updateEntireMessage(message){
+    updateEntireMessage(message) {
       this.messages = this.messages.map(msg => {
-        if (msg._id === message._id){
+        if (msg._id === message._id) {
           return message
         }
         return msg
       })
     },
 
-    deleteMessage(msg, deleteForEveryone, recipient_id){
+    deleteMessage(msg, deleteForEveryone, recipient_id) {
       fetch(`${this.apiUrl}/delete_message`, {
         method: 'POST',
         headers: {
@@ -231,11 +239,11 @@ export const useAppStore = defineStore('appStore', {
           delete_for_all: deleteForEveryone
         })
       })
-      .then(res => {return res.json()})
-      .then(res=>{
-        this.updateEntireMessage(res.data)
-        if (deleteForEveryone) this.socket.emit('delete_message', {room_id: recipient_id, data: res.data })
-      })
+        .then(res => { return res.json() })
+        .then(res => {
+          this.updateEntireMessage(res.data)
+          if (deleteForEveryone) this.socket.emit('delete_message', { room_id: recipient_id, data: res.data })
+        })
     },
     incrementUnreadCount(roomId) {
       this.rooms = this.rooms.map(room => {
@@ -254,7 +262,7 @@ export const useAppStore = defineStore('appStore', {
       })
       this.updateUserLastSeenInRoom(roomId)
     },
-    updateUserLastSeenInRoom(room_id){
+    updateUserLastSeenInRoom(room_id) {
       fetch(`${this.apiUrl}/update_last_seen`, {
         method: 'POST',
         headers: {
@@ -267,24 +275,28 @@ export const useAppStore = defineStore('appStore', {
         })
       })
     },
-    setupSocket(){
+    setupSocket() {
       // this.socket.on('joined', (msg)=>{
       //   console.log(msg)
       // })
       this.socket.emit('join_room', this.user._id)
-      this.socket.on('receive_message', (msg)=>{
+      this.socket.on('receive_message', (msg) => {
         this.addMessageToRoom(msg)
       })
-      this.socket.on('edit_message', (msg)=>{
+      this.socket.on('edit_message', (msg) => {
         this.updateMessageContent(msg.message_id, msg.content)
       })
-      this.socket.on('delete_message', (msg)=>{
+      this.socket.on('delete_message', (msg) => {
         console.log(msg)
         this.updateEntireMessage(msg)
       })
+      this.socket.on('new_room', (room) => {
+        room = this.transformRoomData(room)
+        this.rooms.unshift(room)
+      })
     },
-    socketSendMessage(room_ids, message){
-      this.socket.emit('send_message', {room_ids: room_ids, message: message})
+    socketSendMessage(room_ids, message) {
+      this.socket.emit('send_message', { room_ids: room_ids, message: message })
     }
   },
 })
