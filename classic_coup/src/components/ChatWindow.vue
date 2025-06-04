@@ -1,9 +1,9 @@
 <template>
   <div class="chat-window">
     <div class="chat-header">
-      <button v-if="isMobile" class="back-button" @click="$emit('back')">
+      <!-- <button v-if="isMobile" class="back-button" @click="$emit('back')">
         ← Back
-      </button>
+      </button> -->
       <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
         <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
         <div class="chat-title-text">

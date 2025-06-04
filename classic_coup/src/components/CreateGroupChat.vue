@@ -105,7 +105,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users })
+          body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users, admin_id: this.appStore.user._id })
         })
         .then(response => response.json())
         .then(res => {

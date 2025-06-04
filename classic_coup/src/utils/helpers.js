@@ -52,6 +52,7 @@ export function detectUrls(text) {
   // - http:// or https:// protocol
   // - domain name with at least one dot
   // - optional path, query parameters, and fragments
+  text = text.toLowerCase()
   const urlRegex = /https?:\/\/(?:[\w-]+\.)+[\w-]+(?:\/[\w-./?%&=]*)?/g
   const urls = text.match(urlRegex)
   if (urls) {

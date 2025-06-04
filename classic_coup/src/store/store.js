@@ -292,9 +292,23 @@ export const useAppStore = defineStore('appStore', {
         console.log(msg)
         this.updateEntireMessage(msg)
       })
-      this.socket.on('new_room', (room) => {
-        room = this.transformRoomData(room)
-        this.rooms.unshift(room)
+      this.socket.on('new_room', (room_id) => {
+        fetch(`${this.apiUrl}/get_room_details`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: this.user._id,
+            room_id: room_id
+          })
+        })
+          .then(res => { return res.json() })
+          .then(res => {
+            if (!res.status) return
+            room = this.transformRoomData(res.data)
+            this.rooms.unshift(room)
+          })
       })
     },
     socketSendMessage(room_ids, message) {
