@@ -13,7 +13,6 @@ export const useAppStore = defineStore('appStore', {
     selectedRoom: null,
     selectedRoomId: null,
     rooms: [],
-    isMobile: null,
     messages: [],
     socket: null,
     messagesContainerRef: null,
@@ -119,6 +118,7 @@ export const useAppStore = defineStore('appStore', {
             if (this.rooms.length > 0) {
               this.selectedRoom = this.rooms[0]
               this.selectedRoomId = this.rooms[0]._id
+              this.markRoomAsRead(this.rooms[0]._id)
             }
           } else {
             this.findRecipientRoom()
@@ -131,8 +131,10 @@ export const useAppStore = defineStore('appStore', {
       // If the room is found locally in the already fetched rooms, use it
       const existingRoom = this.rooms.find(room => room.recipient._id === this.recipient._id)
       if (existingRoom) {
+        if (this.isMobileView) return
         this.selectedRoom = existingRoom
         this.selectedRoomId = existingRoom._id
+        this.markRoomAsRead(existingRoom._id)
       } else { // If not found locally, meaning this is their first time meeting, create a new room (rare)
         await fetch(`${this.apiUrl}/create_room`, {
           method: 'POST',

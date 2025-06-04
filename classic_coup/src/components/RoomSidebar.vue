@@ -29,7 +29,7 @@ export default {
     return {
       placeholder: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
       appStore: useAppStore(),
-      room: null
+      room: null,
     }
   },
   methods: {
@@ -44,6 +44,7 @@ export default {
   },
   mounted() {
     this.room = this.appStore.selectedRoom;
+
     setTimeout(() => {
       document.addEventListener('click', this.handleClickOutside);
     }, 1000);

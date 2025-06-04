@@ -40,7 +40,7 @@ import { useAppStore } from '../store/store'
 import MessageBubble from './MessageBubble.vue'
 import MessageInput from './MessageInput.vue'
 import RoomSidebar from './RoomSidebar.vue'
-
+import { addBackButtonHandler } from '../utils/helpers'
 export default {
   name: 'ChatWindow',
   components: {
@@ -61,7 +61,7 @@ export default {
       replyTo: null,
       isLoading: true,
       sidebarOpen: false,
-      showTitleDetails: true
+      showTitleDetails: true,
     }
   },
   computed: {
@@ -166,6 +166,7 @@ export default {
   mounted() {
     this.loadMessages()
     this.appStore.setMessagesContainerRef(this.$refs.messagesContainer)
+    if (this.appStore.isMobileView) addBackButtonHandler(()=>{this.$emit('back')})
     setTimeout(() => {
       this.showTitleDetails = false
     }, 3000);

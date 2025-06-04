@@ -1,3 +1,29 @@
+export function addBackButtonHandler(callback) {
+  const handler = (event) => {
+    // Prevent normal back behavior by pushing the state back
+    history.pushState(null, null, location.href);
+    callback();
+  };
+
+  let listenerAdded = false;
+
+  if (window.innerWidth <= 768) {
+    // Push a dummy state to prevent going back
+    history.pushState(null, null, location.href);
+
+    // Listen for the popstate event
+    window.addEventListener('popstate', handler);
+    console.log('Back button handler added.');
+    listenerAdded = true;
+  }
+
+  return () => {
+    if (listenerAdded) {
+      window.removeEventListener('popstate', handler);
+      console.log('Back button handler removed.');
+    }
+  };
+}
 /**
  * Format a date string into a readable time format
  * @param {string} dateString - The date string to format
@@ -32,19 +58,19 @@ export function detectUrls(text) {
     return [...new Set(urls)]
   }
   return []
-} 
+}
 
 export const scrollToBottom = async (containerRef) => {
-    if (!containerRef) return;
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
-    if (containerRef) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
-      
-      if (isNearBottom) {
-        containerRef.scrollTop = scrollHeight;
-      }
+  if (!containerRef) return;
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+  if (containerRef) {
+    const { scrollTop, scrollHeight, clientHeight } = containerRef;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+
+    if (isNearBottom) {
+      containerRef.scrollTop = scrollHeight;
     }
-  }; 
+  }
+};
 
