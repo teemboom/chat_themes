@@ -1,9 +1,7 @@
 <template>
-  <div class="chat-window">
+  <div class="chat-window" :class="{ 'chat-window-mobile': appStore.isMobileView }">
     <div class="chat-header">
-      <!-- <button v-if="isMobile" class="back-button" @click="$emit('back')">
-        ← Back
-      </button> -->
+      
       <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
         <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
         <div class="chat-title-text">
@@ -11,6 +9,9 @@
           <span v-if="showTitleDetails" class="chat-title-text-status">Click For Details</span>
         </div>
       </div>
+      <button v-if="isMobile" class="back-button" @click="$emit('back')">
+        ←
+      </button>
     </div>
 
     <div class="messages-container" ref="messagesContainer">
@@ -183,13 +184,14 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 100vh;
 }
 
 .chat-header {
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
-  align-items: center;
+  justify-content: space-between;
   background-color: white;
 }
 
@@ -201,6 +203,8 @@ export default {
   cursor: pointer;
   padding: 8px;
   margin-right: 8px;
+  display: flex;
+  align-items: center;
 }
 
 .chat-title {
@@ -302,14 +306,11 @@ export default {
   }
 }
 
-@media (max-width: 768px) {
-  .chat-window {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: white;
-  }
+.chat-window-mobile {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
 }
 </style>

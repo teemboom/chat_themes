@@ -16,7 +16,7 @@ export const useAppStore = defineStore('appStore', {
     messages: [],
     socket: null,
     messagesContainerRef: null,
-    isMobileView: window.innerWidth <= 768
+    isMobileView: document.getElementById('teemboom_chat').clientWidth <= 768
   }),
 
   actions: {
@@ -32,7 +32,7 @@ export const useAppStore = defineStore('appStore', {
       return true
     },
     handleResize() {
-      this.isMobileView = window.innerWidth <= 768
+      this.isMobileView = document.getElementById('teemboom_chat').clientWidth <= 768
     },
     async loadConfig() {
       fetch(`${this.apiUrl}/teemboom_config`, {

@@ -7,7 +7,7 @@ export function addBackButtonHandler(callback) {
 
   let listenerAdded = false;
 
-  if (window.innerWidth <= 768) {
+  if (document.getElementById('teemboom_chat').clientWidth <= 768) {
     // Push a dummy state to prevent going back
     history.pushState(null, null, location.href);
 

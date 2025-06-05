@@ -42,6 +42,7 @@ export default {
 <style scoped>
 .chat-layout {
     height: 100vh;
+    max-height: 100%;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -57,13 +58,7 @@ export default {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 768px) {
-    .chat-container {
-        max-width: 100%;
-    }
-
-    .mobile-view {
-        position: relative;
-    }
+.mobile-view {
+    position: relative;
 }
 </style>

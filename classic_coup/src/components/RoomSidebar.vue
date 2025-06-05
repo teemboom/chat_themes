@@ -59,11 +59,11 @@ export default {
 .sidebar-content {
   background: #fff;
   width: 350px;
-  max-width: 100vw;
+  max-width: 100%;
   height: 100vh;
   box-shadow: -2px 0 8px rgba(0,0,0,0.1);
   padding: 24px 16px 16px 16px;
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   overflow-y: auto;
