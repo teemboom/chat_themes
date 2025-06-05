@@ -7,7 +7,7 @@
       <!-- Action menu for own messages (reply, edit, delete) -->
       <div class="message-actions" v-if="isOwn">
         <button class="action-button" @click="toggleDropdown">
-          <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
+          <span class="dots"><svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.672"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.29289 8.79289C6.68342 8.40237 7.31658 8.40237 7.70711 8.79289L12 13.0858L16.2929 8.79289C16.6834 8.40237 17.3166 8.40237 17.7071 8.79289C18.0976 9.18342 18.0976 9.81658 17.7071 10.2071L12.7071 15.2071C12.3166 15.5976 11.6834 15.5976 11.2929 15.2071L6.29289 10.2071C5.90237 9.81658 5.90237 9.18342 6.29289 8.79289Z" fill="#000000"></path> </g></svg></span>
           <div class="dropdown-menu" v-if="showDropdown">
             <div class="dropdown-item" @click="handleReply">Reply</div>
             <div class="dropdown-item" @click="handleEdit">Edit</div>
@@ -69,7 +69,7 @@
       <!-- Action menu for other users' messages (reply, delete) -->
       <div class="message-actions" v-if="!isOwn">
         <button class="action-button" @click="toggleDropdown">
-          <span class="dots"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Arrow / Caret_Down_MD"> <path id="Vector" d="M16 10L12 14L8 10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg></span>
+          <span class="dots"><svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.672"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.29289 8.79289C6.68342 8.40237 7.31658 8.40237 7.70711 8.79289L12 13.0858L16.2929 8.79289C16.6834 8.40237 17.3166 8.40237 17.7071 8.79289C18.0976 9.18342 18.0976 9.81658 17.7071 10.2071L12.7071 15.2071C12.3166 15.5976 11.6834 15.5976 11.2929 15.2071L6.29289 10.2071C5.90237 9.81658 5.90237 9.18342 6.29289 8.79289Z" fill="#000000"></path> </g></svg></span>
           <div class="dropdown-menu" v-if="showDropdown">
             <div class="dropdown-item" @click="handleReply">Reply</div>
             <div class="dropdown-item" @click="handleDelete">Delete</div>
@@ -406,25 +406,25 @@ export default {
 .dots svg{
   width: 25px;
   height: 25px;
-  opacity: .3;
-  color: var(--teemboom-text-secondary);
-  fill: var(--teemboom-text-secondary);
-  stroke: var(--teemboom-text-secondary);
+  opacity: .4;
+  fill: var(--teemboom-text-primary);
+  stroke: var(--teemboom-text-primary);
 }
-.dots svg g{
-  fill: var(--teemboom-text-secondary);
-  stroke: var(--teemboom-text-secondary);
+.dots svg path{
+  fill: var(--teemboom-text-primary);
+  stroke: var(--teemboom-text-primary);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 30px;
   background: var(--teemboom-bg-primary);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px var(--teemboom-border-color);
-  min-width: 60px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
   z-index: 1000;
-  padding-bottom: 5px;
+  border: 1px solid var(--teemboom-border-color);
+  backdrop-filter: blur(8px);
 }
 
 .own-message .dropdown-menu {
@@ -432,14 +432,22 @@ export default {
 }
 
 .dropdown-item {
-  padding-top: 5px;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 12px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  color: var(--teemboom-text-primary);
 }
 
 .dropdown-item:hover {
   background-color: var(--teemboom-hover-color);
+  color: var(--teemboom-text-primary);
+}
+
+.dropdown-item:active {
+  transform: scale(0.98);
 }
 
 .deleted-message {

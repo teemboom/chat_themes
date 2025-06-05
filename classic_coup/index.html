@@ -1,77 +1,90 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Vue</title>
-    <style>
-      /* #teemboom_chat {
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + Vue</title>
+  <style>
+    /* #teemboom_chat {
         width: 300px;
         height: 400px;
         border-radius: 10px;
         overflow: hidden;
         border: 1px solid #ccc;
       } */
-       #teemboom_chat {
-        --teemboom-primary-color: #eaf5ff;
-  --teemboom-secondary-color: #456789;
-  --teemboom-accent-color: #567890;
-  
-  /* Background Colors */
-  --teemboom-bg-primary: #181818;
-  --teemboom-bg-secondary: #1e1e1e; /* Slightly lighter dark */
-  --teemboom-bg-tertiary: #2a2a2a; /* Even lighter dark */
+    #teemboom_chat {
+      --teemboom-primary-color: #eaf5ff;
+      --teemboom-secondary-color: #456789;
+      --teemboom-accent-color: #567890;
 
-  /* Text Colors */
-  --teemboom-text-primary: #f0f0f0; /* Light text on dark bg */
-  --teemboom-text-secondary: #cccccc;
-  --teemboom-text-tertiary: #999999;
+      /* Background Colors */
+      --teemboom-bg-primary: #181818;
+      --teemboom-bg-secondary: #1e1e1e;
+      /* Slightly lighter dark */
+      --teemboom-bg-tertiary: #2a2a2a;
+      /* Even lighter dark */
 
-  /* Border Colors */
-  --teemboom-border-color: #333333; /* Subtle border on dark bg */
-  --teemboom-border-color-dark: #555555;
+      /* Text Colors */
+      --teemboom-text-primary: #f0f0f0;
+      /* Light text on dark bg */
+      --teemboom-text-secondary: #cccccc;
+      --teemboom-text-tertiary: #999999;
 
-  /* Message Colors */
-  --teemboom-message-bg-own: #005c4b; /* Darker bubble for own messages */
-  --teemboom-message-bg-other: #343333; /* Lighter dark for others' messages */
-  --teemboom-message-text-own: #e0e0e0; /* Light text */
-  --teemboom-message-text-other: #e0e0e0;
-  --teemboom-message-link-color: #2196f3;
+      /* Border Colors */
+      --teemboom-border-color: #333333;
+      /* Subtle border on dark bg */
+      --teemboom-border-color-dark: #555555;
 
-  /* Interactive Elements */
-  --teemboom-hover-color: #333333; /* Darker hover */
-  --teemboom-active-color: #444444; /* Darker active */
-  --teemboom-focus-color: #567890; /* Accent color for focus */
+      /* Message Colors */
+      --teemboom-message-bg-own: #005c4b;
+      /* Darker bubble for own messages */
+      --teemboom-message-bg-other: #343333;
+      /* Lighter dark for others' messages */
+      --teemboom-message-text-own: #e0e0e0;
+      /* Light text */
+      --teemboom-message-text-other: #e0e0e0;
+      --teemboom-message-link-color: #2196f3;
 
-  /* Status Colors */
-  --teemboom-success-color: #4caf50;
-  --teemboom-error-color: #f44336;
-  --teemboom-warning-color: #ff9800;
+      /* Interactive Elements */
+      --teemboom-hover-color: #333333;
+      /* Darker hover */
+      --teemboom-active-color: #444444;
+      /* Darker active */
+      --teemboom-focus-color: #567890;
+      /* Accent color for focus */
 
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="teemboom_chat"></div>
-    <script>
-      window.teemboomChatConfig = {
-        appId: "679fe6eb735a02cfafc8cee3",
-        appTheme: "classic_coup",
-        apiUrl: "http://chat-api.teemboom.com",
-        socketUrl: "https://chat-socket.teemboom.com",
-        user: {
-          id: "2573544",
-        },
-        recipient: {
-          id: "4gjhjgkjhh567",
-          // username: "Hannah Mensah",
-          // profile_pic: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIizj-yKMa30aivqh1AFZ3YLdMf-VSphh8mg&s",
-        },
-      };
-    </script>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+      /* Status Colors */
+      --teemboom-success-color: #4caf50;
+      --teemboom-error-color: #f44336;
+      --teemboom-warning-color: #ff9800;
+
+      --transition-fast: 0.2s ease;
+      --transition-normal: 0.3s ease;
+      --transition-slow: 0.5s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="teemboom_chat"></div>
+  <script>
+    window.teemboomChatConfig = {
+      appId: "679fe6eb735a02cfafc8cee3",
+      appTheme: "classic_coup",
+      apiUrl: "http://chat-api.teemboom.com",
+      socketUrl: "https://chat-socket.teemboom.com",
+      user: {
+        id: "2573544",
+      },
+      recipient: {
+        id: "4gjhjgkjhh567",
+        // username: "Hannah Mensah",
+        // profile_pic: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIizj-yKMa30aivqh1AFZ3YLdMf-VSphh8mg&s",
+      },
+    };
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>
