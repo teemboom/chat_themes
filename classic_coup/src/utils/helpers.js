@@ -67,7 +67,7 @@ export const scrollToBottom = async (containerRef) => {
   await new Promise(resolve => setTimeout(resolve, 0));
   if (containerRef) {
     const { scrollTop, scrollHeight, clientHeight } = containerRef;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 300;
 
     if (isNearBottom) {
       containerRef.scrollTop = scrollHeight;

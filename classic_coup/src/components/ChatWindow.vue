@@ -221,6 +221,7 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  padding-bottom: 100px;
   background-color: #f5f5f5;
 }
 

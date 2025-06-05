@@ -139,6 +139,18 @@ export default {
   border-top: 1px solid #e0e0e0;
 }
 
+@media (max-width: 768px) {
+  .message-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 12px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
 .reply-preview {
   display: flex;
   align-items: center;
