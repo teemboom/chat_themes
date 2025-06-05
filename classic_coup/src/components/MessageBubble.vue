@@ -285,19 +285,19 @@ export default {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #e0e0e0;
+  background-color: var(--teemboom-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .username {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   margin-bottom: 4px;
   width: 100%;
 }
@@ -307,8 +307,8 @@ export default {
   padding: 9px;
   padding-bottom: 6px;
   border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: var(--teemboom-message-bg-other);
+  box-shadow: 0 1px 2px var(--teemboom-border-color);
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -316,14 +316,15 @@ export default {
 }
 
 .own-message .message-bubble {
-  background-color: #e3f2fd;
+  background-color: var(--teemboom-message-bg-own);
   justify-content: flex-end;
 }
 
 .reply_message{
   width: 100%;
-  border-left: 3px #666 solid;
-  background: #00000011;
+  border-left: 3px var(--teemboom-text-secondary) solid;
+  background: #00000044;
+  color: var(--teemboom-text-primary);
   padding: 4px 6px 7px;
   margin-bottom: 6px;
   font-size: 12px;
@@ -335,7 +336,6 @@ export default {
   margin-bottom: 3px;
   font-size: 80%;
   font-weight: 600;
-
 }
 
 .message-header {
@@ -349,28 +349,30 @@ export default {
 .sender {
   font-weight: 500;
   font-size: 14px;
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .timestamp {
   font-size: 10px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .message-content {
   display: block;
   font-size: 14px;
-  color: #333;
+  color: var(--teemboom-text-primary);
   line-height: 1.4;
   word-break: break-all;
 }
 
-.message-link {
-  color: #2196f3;
+/* Add styles for message links */
+.message-content :deep(.message-link) {
+  color: var(--teemboom-message-link-color, #2196f3);
   text-decoration: none;
+  word-break: break-all;
 }
 
-.message-link:hover {
+.message-content :deep(.message-link:hover) {
   text-decoration: underline;
 }
 
@@ -390,7 +392,7 @@ export default {
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   font-size: 16px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
@@ -398,21 +400,28 @@ export default {
 }
 
 .action-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--teemboom-hover-color);
 }
 
 .dots svg{
   width: 25px;
   height: 25px;
   opacity: .3;
+  color: var(--teemboom-text-secondary);
+  fill: var(--teemboom-text-secondary);
+  stroke: var(--teemboom-text-secondary);
+}
+.dots svg g{
+  fill: var(--teemboom-text-secondary);
+  stroke: var(--teemboom-text-secondary);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 30px;
-  background: white;
+  background: var(--teemboom-bg-primary);
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--teemboom-border-color);
   min-width: 60px;
   z-index: 1000;
   padding-bottom: 5px;
@@ -430,17 +439,17 @@ export default {
 }
 
 .dropdown-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-hover-color);
 }
 
 .deleted-message {
-  background-color: #f5f5f5;
-  color: #999;
+  background-color: var(--teemboom-bg-secondary);
+  color: var(--teemboom-text-tertiary);
   font-style: italic;
 }
 
 .deleted-message .message-content {
-  color: #999;
+  color: var(--teemboom-text-tertiary);
 }
 
 .highlight-message {
@@ -449,7 +458,7 @@ export default {
 
 @keyframes highlight {
   0% {
-    background-color: rgba(255, 255, 0, 0.3);
+    background-color: var(--teemboom-focus-color);
   }
   100% {
     background-color: transparent;
@@ -466,10 +475,10 @@ export default {
 }
 
 .preview-card {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 8px;
   overflow: hidden;
-  background: white;
+  background: var(--teemboom-bg-primary);
 }
 
 .preview-image {
@@ -487,13 +496,13 @@ export default {
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .preview-description {
   margin: 0;
   font-size: 12px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   line-height: 1.4;
 }
 
@@ -514,9 +523,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--teemboom-bg-secondary);
   font-size: 12px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .image-name {
@@ -527,6 +536,6 @@ export default {
 }
 
 .image-size {
-  color: #999;
+  color: var(--teemboom-text-tertiary);
 }
 </style>

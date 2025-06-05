@@ -139,11 +139,12 @@ export default {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: var(--teemboom-bg-primary);
   padding: 24px;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
@@ -154,14 +155,17 @@ export default {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
+  color: var(--teemboom-text-primary);
 }
 
 .form-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 4px;
   font-size: 14px;
+  color: var(--teemboom-text-primary);
+  background-color: var(--teemboom-bg-primary);
 }
 
 .search-dropdown {
@@ -173,8 +177,8 @@ export default {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  background-color: var(--teemboom-bg-primary);
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 4px;
   max-height: 200px;
   overflow-y: auto;
@@ -184,10 +188,11 @@ export default {
 .dropdown-item {
   padding: 8px 12px;
   cursor: pointer;
+  color: var(--teemboom-text-primary);
 }
 
 .dropdown-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-hover-color);
 }
 
 .selected-users {
@@ -197,6 +202,7 @@ export default {
 .selected-users h3 {
   font-size: 14px;
   margin-bottom: 8px;
+  color: var(--teemboom-text-primary);
 }
 
 .selected-users-list {
@@ -206,18 +212,19 @@ export default {
 }
 
 .selected-user {
-  background-color: #e3f2fd;
+  background-color: var(--teemboom-message-bg-own);
   padding: 4px 8px;
   border-radius: 16px;
   display: flex;
   align-items: center;
   gap: 4px;
+  color: var(--teemboom-text-primary);
 }
 
 .remove-user {
   background: none;
   border: none;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   cursor: pointer;
   padding: 0 4px;
 }
@@ -238,18 +245,19 @@ export default {
 }
 
 .cancel-button {
-  background-color: #f5f5f5;
-  border: 1px solid #e0e0e0;
+  background-color: var(--teemboom-bg-secondary);
+  border: 1px solid var(--teemboom-border-color);
+  color: var(--teemboom-text-primary);
 }
 
 .create-button {
-  background-color: #2196f3;
+  background-color: var(--teemboom-primary-color);
   border: none;
-  color: white;
+  color: var(--teemboom-bg-primary);
 }
 
 .create-button:disabled {
-  background-color: #bdbdbd;
+  background-color: var(--teemboom-bg-tertiary);
   cursor: not-allowed;
 }
 </style> 

@@ -1,0 +1,38 @@
+:root {
+  /* Main Colors */
+  --teemboom-primary-color: #345678;
+  --teemboom-secondary-color: #456789;
+  --teemboom-accent-color: #567890;
+  
+  /* Background Colors */
+  --teemboom-bg-primary: #ffffff;
+  --teemboom-bg-secondary: #f5f5f5;
+  --teemboom-bg-tertiary: #e0e0e0;
+  
+  /* Text Colors */
+  --teemboom-text-primary: #333333;
+  --teemboom-text-secondary: #666666;
+  --teemboom-text-tertiary: #999999;
+  
+  /* Border Colors */
+  --teemboom-border-color: #e0e0e0;
+  --teemboom-border-color-dark: #cccccc;
+  
+  /* Message Colors */
+  --teemboom-message-bg-own: #e3f2fd;
+  --teemboom-message-bg-other: #ffffff;
+  --teemboom-message-text-own: #333333;
+  --teemboom-message-text-other: #333333;
+  --teemboom-message-link-color: #2196f3;
+  
+  /* Interactive Elements */
+  --teemboom-hover-color: #f0f0f0;
+  --teemboom-active-color: #e0e0e0;
+  --teemboom-focus-color: #e3f2fd;
+  
+  /* Status Colors */
+  --teemboom-success-color: #4caf50;
+  --teemboom-error-color: #f44336;
+  --teemboom-warning-color: #ff9800;
+
+} 

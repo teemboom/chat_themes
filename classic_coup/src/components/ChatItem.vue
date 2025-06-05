@@ -46,22 +46,22 @@ export default {
   padding: 12px 16px;
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--teemboom-border-color);
 }
 
 .chat-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-hover-color);
 }
 
 .chat-item.selected {
-  background-color: #e3f2fd;
+  background-color: var(--teemboom-focus-color);
 }
 
 .avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #e0e0e0;
+  background-color: var(--teemboom-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,12 +83,12 @@ export default {
 
 .chat-name {
   font-weight: 500;
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .chat-time {
   font-size: 12px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .message-row {
@@ -100,7 +100,7 @@ export default {
 
 .last-message {
   font-size: 13px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -108,8 +108,8 @@ export default {
 }
 
 .unread-badge {
-  background-color: #2196f3;
-  color: white;
+  background-color: var(--teemboom-primary-color);
+  color: var(--teemboom-bg-primary);
   border-radius: 50%;
   min-width: 20px;
   height: 20px;

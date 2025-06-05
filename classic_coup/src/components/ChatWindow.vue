@@ -189,17 +189,17 @@ export default {
 
 .chat-header {
   padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--teemboom-border-color);
   display: flex;
   justify-content: space-between;
-  background-color: white;
+  background-color: var(--teemboom-bg-primary);
 }
 
 .back-button {
   background: none;
   border: none;
   font-size: 16px;
-  color: #2196f3;
+  color: var(--teemboom-primary-color);
   cursor: pointer;
   padding: 8px;
   margin-right: 8px;
@@ -211,6 +211,7 @@ export default {
   display: flex;
   align-items: center;
   font-weight: 500;
+  color: var(--teemboom-text-primary);
 }
 
 .avatar {
@@ -226,7 +227,33 @@ export default {
   overflow-y: auto;
   padding: 16px;
   padding-bottom: 100px;
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-bg-secondary);
+}
+
+/* Custom scrollbar styling */
+.messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: var(--teemboom-bg-secondary);
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: var(--teemboom-bg-tertiary);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: var(--teemboom-primary-color);
+}
+
+/* Firefox scrollbar styling */
+.messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--teemboom-bg-tertiary) var(--teemboom-bg-secondary);
 }
 
 .loading-bubble {
@@ -242,7 +269,7 @@ export default {
 
 .chat-title-text-status {
   font-size: 10px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   margin-top: 2px;
 }
 
@@ -250,7 +277,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #e0e0e0;
+  background: var(--teemboom-bg-tertiary);
   margin-right: 12px;
   animation: pulse 1.5s infinite;
 }
@@ -272,13 +299,10 @@ export default {
 
 .loading-line {
   height: 12px;
-  background: #e0e0e0;
+  background: var(--teemboom-bg-tertiary);
   border-radius: 6px;
   margin-bottom: 8px;
   animation: pulse 1.5s infinite;
-}
-
-.loading-line:first-child {
 }
 
 .loading-line:last-child {
@@ -311,6 +335,6 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: white;
+  background-color: var(--teemboom-bg-primary);
 }
 </style>

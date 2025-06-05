@@ -81,11 +81,11 @@ export default {
 
 <style scoped>
 .link-preview {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 6px;
   overflow: hidden;
-  background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background: var(--teemboom-bg-primary);
+  box-shadow: 0 1px 2px var(--teemboom-border-color);
   max-width: 300px;
   margin: 0.5rem 0;
 }
@@ -109,7 +109,7 @@ export default {
 .title {
   margin: 0 0 0.25rem 0;
   font-size: 0.95rem;
-  color: #333;
+  color: var(--teemboom-text-primary);
   font-weight: 600;
   /* white-space: nowrap;
   overflow: hidden;
@@ -118,7 +118,7 @@ export default {
 
 .description {
   margin: 0;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   font-size: 0.85rem;
   line-height: 1.3;
   display: -webkit-box;
@@ -152,10 +152,10 @@ export default {
 .loading, .error {
   padding: 1rem;
   text-align: center;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .error {
-  color: #dc3545;
+  color: var(--teemboom-error-color);
 }
 </style>

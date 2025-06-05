@@ -54,21 +54,21 @@ export default {
 }
 
 .popup-content {
-  background-color: white;
+  background-color: var(--teemboom-bg-primary);
   padding: 20px;
   border-radius: 8px;
   min-width: 300px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px var(--teemboom-border-color);
 }
 
 .popup-content h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .popup-content p {
   margin: 0 0 20px 0;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .popup-actions {
@@ -80,27 +80,28 @@ export default {
 .cancel-button, .delete-button {
   padding: 8px 16px;
   border-radius: 4px;
-  border: none;
+  border: 1px solid var(--teemboom-border-color);
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
 }
 
 .cancel-button {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--teemboom-bg-secondary);
+  color: var(--teemboom-text-primary);
 }
 
 .cancel-button:hover {
-  background-color: #e0e0e0;
+  background-color: var(--teemboom-bg-tertiary);
 }
 
 .delete-button {
-  background-color: #dc3545;
-  color: white;
+  background-color: var(--teemboom-error-color);
+  color: var(--teemboom-bg-primary);
 }
 
 .delete-button:hover {
-  background-color: #c82333;
+  background-color: var(--teemboom-error-color);
+  opacity: 0.9;
 }
 </style> 

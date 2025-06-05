@@ -135,8 +135,8 @@ export default {
 <style scoped>
 .message-input-container {
   padding: 16px;
-  background-color: white;
-  border-top: 1px solid #e0e0e0;
+  background-color: var(--teemboom-bg-primary);
+  border-top: 1px solid var(--teemboom-border-color);
 }
 
 @media (max-width: 768px) {
@@ -156,9 +156,9 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-bg-secondary);
   border-radius: 3px;
-  border-left: 4px #333 solid;
+  border-left: 4px var(--teemboom-primary-color) solid;
   margin-bottom: 8px;
 }
 
@@ -170,13 +170,13 @@ export default {
 }
 
 .reply-label {
-  color: #666;
+  color: var(--teemboom-text-secondary);
   font-size: 12px;
   font-weight: 500;
 }
 
 .reply-text {
-  color: #333;
+  color: var(--teemboom-text-primary);
   font-size: 13px;
   word-break: break-all;
 }
@@ -184,7 +184,7 @@ export default {
 .cancel-reply {
   background: none;
   border: none;
-  color: #666;
+  color: var(--teemboom-text-secondary);
   font-size: 18px;
   cursor: pointer;
   padding: 0 4px;
@@ -192,13 +192,16 @@ export default {
 }
 
 .cancel-reply:hover {
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
+  background-color: var(--teemboom-bg-secondary);
+  border-radius: 20px;
+  padding: 4px 8px;
 }
 
 .emoji-picker {
@@ -222,6 +225,10 @@ export default {
 .emoji-picker button svg {
   width: 24px;
   height: 24px;
+  stroke: var(--teemboom-text-primary);
+}
+.emoji-picker button svg path{
+  stroke: var(--teemboom-text-primary);
 }
 
 .emoji-picker-container {
@@ -234,8 +241,7 @@ export default {
 
 textarea {
   flex: 1;
-  padding: 12px;
-  /* border: 1px solid #e0e0e0; */
+  padding: 8px;
   border: none;
   border-radius: 20px;
   resize: none;
@@ -245,30 +251,45 @@ textarea {
   line-height: 1.4;
   max-height: 120px;
   overflow-y: auto;
+  background-color: transparent;
+  color: var(--teemboom-text-primary);
 }
 
 textarea:focus {
-  border-color: #2196f3;
+  border-color: var(--teemboom-primary-color);
 }
 
 .send-button {
   padding: 8px 16px;
-  color: white;
+  color: var(--teemboom-text-primary);
   border: none;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
+  background-color: var(--teemboom-bg-secondary);
 }
-.send-button svg{
+
+.send-button svg {
   width: 25px;
   height: 25px;
+  stroke: var(--teemboom-text-primary);
+  fill: var(--teemboom-text-primary);
+}
+.send-button svg path{
+  stroke: var(--teemboom-text-primary);
+  fill: var(--teemboom-text-primary);
+}
+.send-button svg g{
+  stroke: var(--teemboom-text-primary);
+  fill: var(--teemboom-text-primary);
 }
 
 .send-button:hover:not(:disabled) {
-  background-color: #1976d2;
+  background-color: var(--teemboom-hover-color);
 }
 
 .send-button:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
 }
 </style> 

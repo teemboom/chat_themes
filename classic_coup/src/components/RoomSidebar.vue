@@ -57,11 +57,11 @@ export default {
 
 <style scoped>
 .sidebar-content {
-  background: #fff;
+  background: var(--teemboom-bg-primary);
   width: 350px;
   max-width: 100%;
   height: 100vh;
-  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  box-shadow: -2px 0 8px var(--teemboom-border-color);
   padding: 24px 16px 16px 16px;
   position: absolute;
   top: 0;
@@ -106,9 +106,10 @@ export default {
 .name {
   font-weight: bold;
   font-size: 18px;
+  color: var(--teemboom-text-primary);
 }
 .status {
-  color: #888;
+  color: var(--teemboom-text-secondary);
   font-size: 14px;
 }
 .member-list {

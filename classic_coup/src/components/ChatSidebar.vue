@@ -103,6 +103,7 @@ export default {
   font-size: 24px;
   font-weight: bold;
   margin: 0;
+  color: var(--teemboom-text-primary);
 }
 
 .menu-container {
@@ -119,20 +120,20 @@ export default {
 }
 
 .menu-button:hover {
-  background-color: #f0f0f0;
+  background-color: var(--teemboom-hover-color);
 }
 
 .menu-icon {
   font-size: 20px;
-  color: #666;
+  color: var(--teemboom-text-secondary);
 }
 
 .dropdown-menu {
   position: absolute;
   right: 0;
   top: 100%;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  background-color: var(--teemboom-bg-primary);
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -142,43 +143,48 @@ export default {
 .menu-item {
   padding: 8px 16px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-fast);
   font-size: 11px;
+  color: var(--teemboom-text-primary);
 }
 
 .menu-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--teemboom-hover-color);
 }
 
 .chat-sidebar {
-  width: 400px;
+  width: 350px;
   height: 100%;
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid var(--teemboom-border-color);
   display: flex;
   flex-direction: column;
+  background-color: var(--teemboom-bg-primary);
 }
 
 .search-container {
   padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--teemboom-border-color);
 }
 
 .search-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--teemboom-border-color);
   border-radius: 20px;
   outline: none;
   font-size: 14px;
+  color: var(--teemboom-text-primary);
+  background-color: var(--teemboom-bg-primary);
 }
 
 .search-input:focus {
-  border-color: #2196f3;
+  border-color: var(--teemboom-primary-color);
 }
 
 .chats-list {
   flex: 1;
   overflow-y: auto;
+  background-color: var(--teemboom-bg-primary);
 }
 
 @media (max-width: 768px) {

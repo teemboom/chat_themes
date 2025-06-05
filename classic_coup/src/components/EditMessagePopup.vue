@@ -78,7 +78,7 @@ export default {
 }
 
 .edit-popup {
-  background: white;
+  background: var(--teemboom-bg-primary);
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
@@ -87,13 +87,13 @@ export default {
 
 .edit-popup-header {
   padding: 16px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--teemboom-border-color);
 }
 
 .edit-popup-header h3 {
   margin: 0;
   font-size: 18px;
-  color: #333;
+  color: var(--teemboom-text-primary);
 }
 
 .edit-popup-content {
@@ -103,7 +103,9 @@ export default {
 .edit-textarea {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  background-color: var(--teemboom-bg-secondary);
+  border: 1px solid var(--teemboom-border-color);
+  color: var(--teemboom-text-primary);
   border-radius: 4px;
   resize: vertical;
   font-family: inherit;
@@ -115,7 +117,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--teemboom-border-color);
 }
 
 .cancel-btn, .edit-btn {
@@ -128,20 +130,20 @@ export default {
 }
 
 .cancel-btn {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--teemboom-bg-secondary);
+  color: var(--teemboom-text-primary);
 }
 
 .edit-btn {
-  background-color: #2196f3;
-  color: white;
+  background-color: var(--teemboom-primary-color);
+  color: var(--teemboom-bg-primary);
 }
 
 .cancel-btn:hover {
-  background-color: #e0e0e0;
+  background-color: var(--teemboom-bg-tertiary);
 }
 
 .edit-btn:hover {
-  background-color: #1976d2;
+  background-color: var(--teemboom-secondary-color);
 }
 </style> 
