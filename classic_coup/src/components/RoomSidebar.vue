@@ -15,7 +15,6 @@
         </button>
       </div>
       <div v-else-if="room?.type === 'group'">
-        <h2 class="cP">Group Members</h2>
         <div v-if="isAdmin" class="admin-controls">
           <button class="action-button add-member" @click="showAddMemberModal">
             Add Member
@@ -24,6 +23,7 @@
             Group Settings
           </button>
         </div>
+        <h2 class="cP">Group Members</h2>
         <ul class="member-list">
           <li>
             <img :src="this.appStore.user.profile_pic || placeholder" class="avatar" @error="onImgError">
@@ -550,6 +550,7 @@ export default {
 
 .cP{
   color: var(--teemboom-text-primary);
+  margin-top: 40px;
 }
 
 .dm_overlay {
@@ -583,7 +584,7 @@ export default {
 .member-list {
   list-style: none;
   padding: 0;
-  margin: 30px 0 20px 0;
+  margin: 10px 0 20px 0;
   color: var(--teemboom-text-primary);
 }
 
