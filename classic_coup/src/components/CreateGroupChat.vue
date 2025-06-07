@@ -7,6 +7,10 @@
         <input id="roomName" v-model="roomName" type="text" placeholder="Enter room name" class="form-input" />
       </div>
       <div class="form-group">
+        <label for="roomImageUrl">Room Image Url</label>
+        <input id="roomImageUrl" v-model="roomImageUrl" type="text" placeholder="Enter room image url" class="form-input" />
+      </div>
+      <div class="form-group">
         <label for="userSearch">Search Users</label>
         <div class="search-dropdown">
           <input id="userSearch" v-model="searchQuery" type="text" placeholder="Search users..." class="form-input"
@@ -43,6 +47,7 @@ export default {
     return {
       appStore: useAppStore(),
       roomName: '',
+      roomImageUrl: '',
       searchQuery: '',
       showDropdown: false,
       selectedUsers: [],
@@ -68,7 +73,6 @@ export default {
     selectUser(user) {
       this.selectedUsers.push(user)
       this.searchQuery = ''
-      this.showDropdown = false
     },
     removeUser(user) {
       this.selectedUsers = this.selectedUsers.filter(u => u._id !== user._id)
@@ -88,12 +92,13 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users, admin_id: this.appStore.user._id })
+          body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users, admin_id: this.appStore.user._id, group_img: this.roomImageUrl })
         })
           .then(response => response.json())
           .then(res => {
             if (res.status) {
               this.appStore.getUserRooms()
+              users = users.filter(user => user._id !== this.appStore.user._id)
               this.appStore.socket.emit('new_room', { room_ids: users, room: res.data })
               this.closeModal()
             }
@@ -161,10 +166,7 @@ export default {
 }
 
 .dropdown-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: relative;
   background-color: var(--teemboom-bg-primary);
   border: 1px solid var(--teemboom-border-color);
   border-radius: 4px;

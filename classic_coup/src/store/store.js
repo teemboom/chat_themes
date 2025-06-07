@@ -103,10 +103,12 @@ export const useAppStore = defineStore('appStore', {
         details: room.details
       }
     },
-    async getUserRooms() {
-      this.rooms = []
-      this.selectedRoom = null
-      this.selectedRoomId = null
+    async getUserRooms(reset=false) {
+      if (reset){
+        this.rooms = []
+        this.selectedRoom = null
+        this.selectedRoomId = null
+      }
       await fetch(`${this.apiUrl}/get_user_rooms`, {
         method: 'POST',
         headers: {
