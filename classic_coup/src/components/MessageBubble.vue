@@ -31,7 +31,7 @@
 
         <!-- Reply message preview with click-to-scroll functionality -->
         <a v-if="message.reply_to" class="reply_message" @click.prevent="scrollToMessage(message.reply_to)">
-          <span>{{ replyIsOwn ? 'You' : appStore.selectedRoom.recipient.username  }}</span>
+          <span>{{ replyIsOwn ? 'You' : messageUser?.username  }}</span>
           <p>{{ isReplyDeleted() ? 'Message Deleted' : message.reply_message.content }}</p>
         </a>
 

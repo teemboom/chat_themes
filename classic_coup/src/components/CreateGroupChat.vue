@@ -4,33 +4,16 @@
       <h2>Create New Group Chat</h2>
       <div class="form-group">
         <label for="roomName">Room Name</label>
-        <input
-          id="roomName"
-          v-model="roomName"
-          type="text"
-          placeholder="Enter room name"
-          class="form-input"
-        />
+        <input id="roomName" v-model="roomName" type="text" placeholder="Enter room name" class="form-input" />
       </div>
       <div class="form-group">
         <label for="userSearch">Search Users</label>
         <div class="search-dropdown">
-          <input
-            id="userSearch"
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search users..."
-            class="form-input"
-            @focus="showDropdown = true"
-          />
+          <input id="userSearch" v-model="searchQuery" type="text" placeholder="Search users..." class="form-input"
+            @focus="showDropdown = true" />
           <div v-if="showDropdown && filteredUsers.length > 0" class="dropdown-list">
-            <div
-              v-for="user in filteredUsers"
-              :key="user._id"
-              class="dropdown-item"
-              @click="selectUser(user)"
-            >
-                {{ user.username }}
+            <div v-for="user in filteredUsers" :key="user._id" class="dropdown-item" @click="selectUser(user)">
+              {{ user.username }}
             </div>
           </div>
         </div>
@@ -107,19 +90,24 @@ export default {
           },
           body: JSON.stringify({ app_id: this.appStore.appId, group_name: this.roomName, user_ids: users, admin_id: this.appStore.user._id })
         })
-        .then(response => response.json())
-        .then(res => {
+          .then(response => response.json())
+          .then(res => {
             if (res.status) {
-                this.appStore.getUserRooms()
-                this.appStore.socket.emit('new_room', {room_ids: users, room: res.data})
-                this.closeModal()
+              this.appStore.getUserRooms()
+              this.appStore.socket.emit('new_room', { room_ids: users, room: res.data })
+              this.closeModal()
             }
-        })
+          })
       }
     }
   },
   mounted() {
-    this.users = this.appStore.rooms.map(room => room.recipient)
+    // Get all users from all rooms and groups and filter out duplicates
+    this.users = this.appStore.rooms.flatMap(room => room.users)
+      .filter((user, index, self) =>
+        index === self.findIndex(u => u._id === user._id)
+      );
+
   }
 }
 </script>
@@ -260,4 +248,4 @@ export default {
   background-color: var(--teemboom-bg-tertiary);
   cursor: not-allowed;
 }
-</style> 
+</style>

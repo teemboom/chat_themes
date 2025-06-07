@@ -8,6 +8,8 @@
         </button>
         <div class="dropdown-menu" v-if="isMenuOpen">
           <div class="menu-item" @click="showCreateGroupChat">New Group Chat</div>
+          <div class="menu-item" @click="showBlockedChats" v-if="!showBlockedOnly">Blocked Chats</div>
+          <div class="menu-item" @click="showAllChats" v-if="showBlockedOnly">Show Unblocked Chats</div>
         </div>
       </div>
     </div>
@@ -52,19 +54,24 @@ export default {
       searchQuery: '',
       appStore: useAppStore(),
       isMenuOpen: false,
-      isCreateGroupChatOpen: false
+      isCreateGroupChatOpen: false,
+      showBlockedOnly: false
     }
   },
   computed: {
     filteredRooms() {
-      return this.appStore.rooms.filter(room =>
-        room.details.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-      )
+      return this.appStore.rooms.filter(room => {
+        const matchesSearch = room.details.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+        return this.showBlockedOnly ? (matchesSearch && room.blocked) : (matchesSearch && !room.blocked)
+      })
     }
   },
   methods: {
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen
+      if (!this.isMenuOpen) {
+        this.showBlockedOnly = false
+      }
     },
     showCreateGroupChat() {
       this.isCreateGroupChatOpen = true
@@ -79,13 +86,13 @@ export default {
       console.log('Creating new group chat:', groupData)
       this.isCreateGroupChatOpen = false
     },
-    clearAllChats() {
-      // Implement clear all chats logic
+    showBlockedChats() {
       this.isMenuOpen = false
+      this.showBlockedOnly = true
     },
-    exportChats() {
-      // Implement export chats logic
+    showAllChats() {
       this.isMenuOpen = false
+      this.showBlockedOnly = false
     }
   }
 }
@@ -185,6 +192,26 @@ export default {
   flex: 1;
   overflow-y: auto;
   background-color: var(--teemboom-bg-primary);
+}
+
+/* Custom scrollbar styling */
+.chats-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chats-list::-webkit-scrollbar-track {
+  background: var(--teemboom-bg-secondary);
+  border-radius: 4px;
+}
+
+.chats-list::-webkit-scrollbar-thumb {
+  background: var(--teemboom-bg-tertiary);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.chats-list::-webkit-scrollbar-thumb:hover {
+  background: var(--teemboom-primary-color);
 }
 
 @media (max-width: 768px) {

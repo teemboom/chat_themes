@@ -73,7 +73,13 @@ export const useAppStore = defineStore('appStore', {
     },
     transformRoomData(room) {
       // Find the recipient in this room: the user who is not the current user
-      const recipient = room.users.find(user => user._id !== this.user._id)
+      let recipient = null
+      let blocked = false
+      if (room.type === 'dm') {
+        recipient = room.users.find(user => user._id !== this.user._id)
+        recipient.meta = room.users_meta.find(user => user.user_id === recipient._id)
+        blocked = recipient.meta.blocked
+      }
 
       // For DM rooms, create details object if it doesn't exist
       if (room.type === 'dm' && !room.details) {
@@ -86,8 +92,9 @@ export const useAppStore = defineStore('appStore', {
       return {
         _id: room._id,
         recipient: recipient || null,
+        blocked: blocked,
         transmit: room.users.filter(user => user._id !== this.user._id).map(user => user._id), // An array of user ids that are in the room
-        users: room.users,
+        users: room.users.filter(user => user._id !== this.user._id),
         unread_count: room.unread_count || 0,
         recentMessage: room.recent_message || null,
         createdAt: room.created,
@@ -97,6 +104,9 @@ export const useAppStore = defineStore('appStore', {
       }
     },
     async getUserRooms() {
+      this.rooms = []
+      this.selectedRoom = null
+      this.selectedRoomId = null
       await fetch(`${this.apiUrl}/get_user_rooms`, {
         method: 'POST',
         headers: {
@@ -114,13 +124,7 @@ export const useAppStore = defineStore('appStore', {
           this.rooms = res.data.map(room => this.transformRoomData(room))
 
           // If a recipient is not defined, simply enter the user into the most recently updated room of theirs.
-          if (!this.recipient && !this.isMobileView) {
-            if (this.rooms.length > 0) {
-              this.selectedRoom = this.rooms[0]
-              this.selectedRoomId = this.rooms[0]._id
-              this.markRoomAsRead(this.rooms[0]._id)
-            }
-          } else {
+          if (this.recipient) {
             this.findRecipientRoom()
           }
         })

@@ -7,15 +7,97 @@
         <div>
           <div class="name">{{ room.details.name }}</div>
         </div>
+        <button v-if="!room.blocked" class="action-button block-button" @click="showBlockConfirmation">
+          Block User
+        </button>
+        <button v-else class="action-button unblock-button" @click="showUnblockConfirmation">
+          Unblock User
+        </button>
       </div>
       <div v-else-if="room?.type === 'group'">
         <h2>Group Members</h2>
+        <div v-if="isAdmin" class="admin-controls">
+          <button class="action-button add-member" @click="showAddMemberModal">
+            Add Member
+          </button>
+        </div>
         <ul class="member-list">
+          <li>
+            <img :src="this.appStore.user.profile_pic || placeholder" class="avatar" @error="onImgError">
+            <span>{{ this.appStore.user.username }} (You)</span>
+            <span v-if="room.details.admins?.includes(this.appStore.user._id)" class="admin-badge">Admin</span>
+          </li>
           <li v-for="user in room.users" :key="user._id">
             <img :src="user.profile_pic || placeholder" class="avatar" @error="onImgError">
             <span>{{ user.username }}</span>
+            <span v-if="room.details.admins?.includes(user._id)" class="admin-badge">Admin</span>
+            <div v-if="isAdmin && user._id !== appStore.user._id" class="member-actions">
+              <button class="action-icon menu-trigger" @click="toggleMemberMenu(user._id)" title="Member Actions">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <circle cx="12" cy="5" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="12" cy="19" r="2" />
+                </svg>
+              </button>
+              <div v-if="activeMenu === user._id" class="member-menu">
+                <button v-if="!room.details.admins?.includes(user._id)" class="menu-item"
+                  @click="showMakeAdminConfirmation(user)">
+                  <span class="menu-icon">👑</span>
+                  Make Admin
+                </button>
+                <button v-else class="menu-item" @click="showRemoveAdminConfirmation(user)">
+                  <span class="menu-icon">👑</span>
+                  Remove Admin
+                </button>
+                <button class="menu-item" @click="showRemoveMemberConfirmation(user)">
+                  <span class="menu-icon">🚫</span>
+                  Remove Member
+                </button>
+              </div>
+            </div>
           </li>
         </ul>
+        <button class="action-button leave-button" @click="showLeaveConfirmation">
+          Leave Group
+        </button>
+      </div>
+
+      <!-- Confirmation Modal -->
+      <div v-if="showModal" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <h3>{{ modalTitle }}</h3>
+          <p>{{ modalMessage }}</p>
+          <div v-if="modalType === 'addMember'" class="modal-input">
+            <div class="search-container">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search users..." 
+                class="search-input"
+              >
+            </div>
+            <div class="users-list">
+              <div 
+                v-for="user in filteredUsers" 
+                :key="user._id" 
+                class="user-item"
+                :class="{ 'selected': isUserSelected(user) }"
+                @click="toggleUserSelection(user)"
+              >
+                <img :src="user.profile_pic || placeholder" class="user-avatar" @error="onImgError">
+                <span class="username">{{ user.username }}</span>
+                <span class="selection-indicator">{{ isUserSelected(user) ? '✓' : '' }}</span>
+              </div>
+            </div>
+            <div v-if="selectedUsers.length > 0" class="selected-users">
+              <div class="selected-count">{{ selectedUsers.length }} user(s) selected</div>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-button cancel" @click="closeModal">Cancel</button>
+            <button class="modal-button confirm" @click="handleConfirmation">Confirm</button>
+          </div>
+        </div>
       </div>
     </div>
   </transition>
@@ -30,6 +112,39 @@ export default {
       placeholder: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
       appStore: useAppStore(),
       room: null,
+      showModal: false,
+      modalTitle: '',
+      modalMessage: '',
+      pendingAction: null,
+      isAdmin: false,
+      modalType: '',
+      selectedUser: null,
+      newMemberUsername: '',
+      activeMenu: null,
+      selectedNewMember: null,
+      searchQuery: '',
+      selectedUsers: []
+    }
+  },
+  computed: {
+    availableUsers() {
+      // Get all unique users from all rooms
+      const allUsers = this.appStore.rooms.flatMap(room => room.users)
+        .filter((user, index, self) =>
+          index === self.findIndex(u => u._id === user._id)
+        );
+      
+      // Filter out users already in this group
+      return allUsers.filter(user => 
+        !this.room.users.some(groupUser => groupUser._id === user._id)
+      );
+    },
+    filteredUsers() {
+      if (!this.searchQuery) return this.availableUsers;
+      const query = this.searchQuery.toLowerCase();
+      return this.availableUsers.filter(user => 
+        user.username.toLowerCase().includes(query)
+      );
     }
   },
   methods: {
@@ -40,14 +155,287 @@ export default {
       if (this.$refs.sidebarRef && !this.$refs.sidebarRef.contains(event.target)) {
         this.$emit('close');
       }
+    },
+    showBlockConfirmation() {
+      this.modalTitle = 'Block User';
+      this.modalMessage = `Are you sure you want to block ${this.room.details.name}? You will no longer receive messages from them.`;
+      this.pendingAction = 'block';
+      this.showModal = true;
+    },
+    showUnblockConfirmation() {
+      this.modalTitle = 'Unblock User';
+      this.modalMessage = `Are you sure you want to unblock ${this.room.details.name}? You will start receiving messages from them again.`;
+      this.pendingAction = 'unblock';
+      this.showModal = true;
+    },
+    showLeaveConfirmation() {
+      this.modalTitle = 'Leave Group';
+      this.modalMessage = 'Are you sure you want to leave this group? You will no longer have access to the group chat and will lose all messages.';
+      this.pendingAction = 'leave';
+      this.showModal = true;
+    },
+    showAddMemberModal() {
+      this.modalTitle = 'Add Group Members';
+      this.modalMessage = 'Search and select users to add to the group:';
+      this.modalType = 'addMember';
+      this.pendingAction = 'addMember';
+      this.showModal = true;
+      this.searchQuery = '';
+      this.selectedUsers = [];
+    },
+    showMakeAdminConfirmation(user) {
+      this.modalTitle = 'Make Admin';
+      this.modalMessage = `Are you sure you want to make ${user.username} an admin?`;
+      this.modalType = 'confirmation';
+      this.pendingAction = 'makeAdmin';
+      this.selectedUser = user;
+      this.showModal = true;
+    },
+    showRemoveAdminConfirmation(user) {
+      this.modalTitle = 'Remove Admin';
+      this.modalMessage = `Are you sure you want to remove ${user.username}'s admin status?`;
+      this.modalType = 'confirmation';
+      this.pendingAction = 'removeAdmin';
+      this.selectedUser = user;
+      this.showModal = true;
+    },
+    showRemoveMemberConfirmation(user) {
+      this.modalTitle = 'Remove Member';
+      this.modalMessage = `Are you sure you want to remove ${user.username} from the group?`;
+      this.modalType = 'confirmation';
+      this.pendingAction = 'removeMember';
+      this.selectedUser = user;
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.pendingAction = null;
+      this.modalType = '';
+      this.selectedUser = null;
+      this.newMemberUsername = '';
+      this.activeMenu = null;
+      this.selectedNewMember = null;
+      this.searchQuery = '';
+      this.selectedUsers = [];
+    },
+    handleConfirmation() {
+      switch (this.pendingAction) {
+        case 'addMember':
+          this.handleAddMember();
+          break;
+        case 'makeAdmin':
+          this.handleMakeAdmin();
+          break;
+        case 'removeAdmin':
+          this.handleRemoveAdmin();
+          break;
+        case 'removeMember':
+          this.handleRemoveMember();
+          break;
+        default:
+          if (this.pendingAction === 'block') {
+            this.handleBlockUser();
+          } else if (this.pendingAction === 'leave') {
+            this.handleLeaveGroup();
+          } else if (this.pendingAction === 'unblock') {
+            this.handleUnblockUser();
+          }
+      }
+      this.closeModal();
+    },
+    handleBlockUser() {
+      // TODO: Implement block user functionality
+      fetch(`${this.appStore.apiUrl}/block_dm_user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          user_id: this.appStore.user._id,
+          app_id: this.appStore.appId,
+          block_user_id: this.appStore.selectedRoom.recipient._id
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) console.error('error leaving group')
+          else {
+            this.appStore.getUserRooms()
+            this.$emit('close')
+          }
+        })
+    },
+    handleLeaveGroup() {
+      // TODO: Implement leave group functionality
+
+      fetch(`${this.appStore.apiUrl}/leave_group`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          user_id: this.appStore.user._id,
+          app_id: this.appStore.appId
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) console.error('error leaving group')
+          else {
+            this.appStore.getUserRooms()
+            this.$emit('close')
+          }
+        })
+    },
+    handleUnblockUser() {
+      fetch(`${this.appStore.apiUrl}/unblock_dm_user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          user_id: this.appStore.user._id,
+          app_id: this.appStore.appId,
+          unblock_user_id: this.appStore.selectedRoom.recipient._id
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) console.error('error unblocking user')
+          else {
+            this.appStore.getUserRooms()
+            this.$emit('close')
+          }
+        })
+    },
+    handleAddMember() {
+      if (this.selectedUsers.length === 0) return;
+      
+      // Add users sequentially
+      const addUserPromises = this.selectedUsers.map(user => 
+        fetch(`${this.appStore.apiUrl}/add_group_member`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            room_id: this.appStore.selectedRoomId,
+            admin_id: this.appStore.user._id,
+            app_id: this.appStore.appId,
+            new_user_id: user._id
+          })
+        }).then(response => response.json())
+      );
+
+      Promise.all(addUserPromises)
+        .then(results => {
+          const hasError = results.some(res => !res.status);
+          if (hasError) {
+            console.error('error adding members');
+          } else {
+            this.appStore.getUserRooms();
+            this.selectedUsers = [];
+            this.closeModal();
+          }
+        })
+        .catch(error => {
+          console.error('Error adding members:', error);
+        });
+    },
+    handleMakeAdmin() {
+      fetch(`${this.appStore.apiUrl}/add_group_admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          user_id: this.appStore.user._id,
+          app_id: this.appStore.appId,
+          new_admin_id: this.selectedUser._id
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) console.error('error making admin')
+          else {
+            this.appStore.getUserRooms()
+          }
+        })
+    },
+    handleRemoveAdmin() {
+      fetch(`${this.appStore.apiUrl}/remove_group_admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          user_id: this.appStore.user._id,
+          app_id: this.appStore.appId,
+          target_admin_id: this.selectedUser._id
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) console.error('error removing admin')
+          else {
+            this.appStore.getUserRooms()
+          }
+        })
+    },
+    handleRemoveMember() {
+      fetch(`${this.appStore.apiUrl}/remove_group_member`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: this.appStore.selectedRoomId,
+          admin_id: this.appStore.user._id,
+          app_id: this.appStore.appId,
+          remove_user_id: this.selectedUser._id
+        })
+      })
+        .then(response => response.json())
+        .then(res => {
+          if (!res.status) {
+            console.error('error removing member:', res.message);
+          } else {
+            this.appStore.getUserRooms();
+            this.closeModal();
+          }
+        })
+        .catch(error => {
+          console.error('Error removing member:', error);
+        });
+    },
+    toggleMemberMenu(userId) {
+      this.activeMenu = this.activeMenu === userId ? null : userId;
+    },
+    toggleUserSelection(user) {
+      const index = this.selectedUsers.findIndex(u => u._id === user._id);
+      if (index === -1) {
+        this.selectedUsers.push(user);
+      } else {
+        this.selectedUsers.splice(index, 1);
+      }
+    },
+    isUserSelected(user) {
+      return this.selectedUsers.some(u => u._id === user._id);
     }
   },
   mounted() {
     this.room = this.appStore.selectedRoom;
+    this.isAdmin = this.room?.details?.admins?.includes(this.appStore.user._id);
 
     setTimeout(() => {
       document.addEventListener('click', this.handleClickOutside);
     }, 1000);
+    
   },
   beforeUnmount() {
     document.removeEventListener('click', this.handleClickOutside);
@@ -69,6 +457,7 @@ export default {
   overflow-y: auto;
   z-index: 1000;
 }
+
 .close-btn {
   position: absolute;
   top: 12px;
@@ -78,51 +467,69 @@ export default {
   font-size: 28px;
   cursor: pointer;
 }
+
 .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: 16px;
 }
-.dm_overlay{
+
+.dm_overlay {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 100px 0 40px 0;
 }
-.dm_avatar{
+
+.dm_avatar {
   width: 200px;
   height: 200px;
   border-radius: 50%;
   margin: 15px auto;
   object-position: center;
 }
+
 .avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
 }
+
 .name {
   font-weight: bold;
   font-size: 18px;
   color: var(--teemboom-text-primary);
 }
+
 .status {
   color: var(--teemboom-text-secondary);
   font-size: 14px;
 }
+
 .member-list {
   list-style: none;
   padding: 0;
   margin: 40px 0 30px 0;
+  color: var(--teemboom-text-primary);
 }
+
 .member-list li {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  color: var(--teemboom-text-primary);
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
+
+.member-list li:hover {
+  background-color: var(--teemboom-bg-secondary);
+}
+
 @media (max-width: 768px) {
   .sidebar-content {
     width: 100vw;
@@ -131,11 +538,289 @@ export default {
     padding-top: 40px;
   }
 }
-.sidebar-slide-enter-active, .sidebar-slide-leave-active {
-  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+
+.sidebar-slide-enter-active,
+.sidebar-slide-leave-active {
+  transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
 }
-.sidebar-slide-enter-from, .sidebar-slide-leave-to {
+
+.sidebar-slide-enter-from,
+.sidebar-slide-leave-to {
   transform: translateX(100%);
   opacity: 0;
 }
-</style> 
+
+.action-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.block-button {
+  background-color: #ff4444;
+  color: white;
+  margin-top: 50px;
+}
+
+.block-button:hover {
+  background-color: #ff2222;
+}
+
+.leave-button {
+  background-color: #ff4444;
+  color: white;
+  width: 100%;
+  margin-top: 30px;
+}
+
+.leave-button:hover {
+  background-color: #ff2222;
+}
+
+.unblock-button {
+  background-color: #4CAF50;
+  color: white;
+  margin-top: 50px;
+}
+
+.unblock-button:hover {
+  background-color: #45a049;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.modal-content {
+  background: var(--teemboom-bg-primary);
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content h3 {
+  margin: 0 0 16px 0;
+  color: var(--teemboom-text-primary);
+  font-size: 20px;
+}
+
+.modal-content p {
+  margin: 0 0 24px 0;
+  color: var(--teemboom-text-secondary);
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-button.cancel {
+  background-color: var(--teemboom-bg-secondary);
+  color: var(--teemboom-text-primary);
+}
+
+.modal-button.confirm {
+  background-color: #ff4444;
+  color: white;
+}
+
+.modal-button:hover {
+  opacity: 0.9;
+}
+
+.admin-badge {
+  background-color: #4CAF50;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.admin-controls {
+  margin: 20px 0;
+}
+
+.add-member {
+  background-color: #4CAF50;
+  color: white;
+  width: 100%;
+}
+
+.add-member:hover {
+  background-color: #45a049;
+}
+
+.member-actions {
+  position: relative;
+  margin-left: auto;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.menu-trigger {
+  font-size: 20px;
+  line-height: 1;
+  background: none;
+}
+
+.member-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--teemboom-bg-primary);
+  border: 1px solid var(--teemboom-border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--teemboom-text-primary);
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: var(--teemboom-bg-secondary);
+}
+
+.menu-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.modal-input {
+  margin-bottom: 20px;
+}
+
+.modal-input select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--teemboom-border-color);
+  border-radius: 4px;
+  background: var(--teemboom-bg-primary);
+  color: var(--teemboom-text-primary);
+}
+
+.member-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--teemboom-border-color);
+  border-radius: 4px;
+  background: var(--teemboom-bg-primary);
+  color: var(--teemboom-text-primary);
+}
+
+.search-container {
+  margin-bottom: 12px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--teemboom-border-color);
+  border-radius: 4px;
+  background: var(--teemboom-bg-primary);
+  color: var(--teemboom-text-primary);
+  font-size: 14px;
+}
+
+.users-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--teemboom-border-color);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--teemboom-border-color);
+}
+
+.user-item:last-child {
+  border-bottom: none;
+}
+
+.user-item:hover {
+  background-color: var(--teemboom-bg-secondary);
+}
+
+.user-item.selected {
+  background-color: var(--teemboom-bg-secondary);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.username {
+  flex: 1;
+  color: var(--teemboom-text-primary);
+}
+
+.selection-indicator {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.selected-users {
+  padding: 8px;
+  background-color: var(--teemboom-bg-secondary);
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.selected-count {
+  color: var(--teemboom-text-primary);
+  font-size: 14px;
+}
+</style>
