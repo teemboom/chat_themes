@@ -51,7 +51,7 @@ export const useAppStore = defineStore('appStore', {
               this.socket = io(config.socketUrl)
               this.authenticated = true
             } else {
-              console.error('Teemboom Chat: Application not initialized. Check your token, appId, and make sure this domain is allowed')
+              console.error(`Teemboom Chat: ${res.message}`)
             }
           })
       } else {
@@ -75,12 +75,12 @@ export const useAppStore = defineStore('appStore', {
             if (res.status) {
               this.appConfig = res.data
               this.authenticated = true
+              window.addEventListener('resize', this.handleResize)
+              this.socket = io(config.socketUrl)
               this.loadUserRooms()
             }
-            else console.error('Teemboom Chat: Application not initialized. Check your appId and make sure this domain is allowed')
+            else console.error(`Teemboom Chat: ${res.message}`)
           })
-        window.addEventListener('resize', this.handleResize)
-        this.socket = io(config.socketUrl)
       }
     },
 
