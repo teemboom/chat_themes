@@ -1,5 +1,5 @@
 <template>
-  <ChatLayout v-if="ready" />
+  <ChatLayout v-if="appStore.authenticated" />
 </template>
 
 <script>
@@ -14,12 +14,10 @@ export default {
   data(){
     return {
       appStore: useAppStore(),
-      ready: false
     }
   },
   mounted(){
-    this.ready = this.appStore.appInit()
-    this.appStore.loadUserRooms()
+    this.appStore.appInit()
   }
 }
 </script>

@@ -5,6 +5,7 @@ import { scrollToBottom } from '../utils/helpers'
 export const useAppStore = defineStore('appStore', {
   // State
   state: () => ({
+    authenticated: false,
     appId: null,
     apiUrl: null,
     user: null,
@@ -16,41 +17,80 @@ export const useAppStore = defineStore('appStore', {
     messages: [],
     socket: null,
     messagesContainerRef: null,
-    isMobileView: document.getElementById('teemboom_chat').clientWidth <= 768
+    isMobileView: document.getElementById('teemboom_chat').clientWidth <= 768,
+    loading: true
   }),
 
   actions: {
     appInit() {
       const config = window.teemboomChatConfig
-      this.appId = config.appId
-      this.apiUrl = config.apiUrl
-      this.user = config.user
-      this.recipient = config.recipient
-      this.socket = io(config.socketUrl)
-      this.loadConfig()
-      window.addEventListener('resize', this.handleResize)
-      return true
-    },
-    handleResize() {
-      this.isMobileView = document.getElementById('teemboom_chat').clientWidth <= 768
-    },
-    async loadConfig() {
-      fetch(`${this.apiUrl}/teemboom_config`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          app_id: this.appId,
-          domain_name: `${window.location.protocol}//${window.location.host}`
+      if (config.token) {
+        fetch(`${config.apiUrl}/teemboom_token_config`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            token: config.token,
+            app_id: config.appId,
+            domain: window.location.origin
+          })
         })
-      })
-        .then(res => { return res.json() })
-        .then(res => {
-          if (res.status) this.appConfig = res.data
-          else console.error('Application not initialized. Check your appId and make sure this domain is allowed')
+          .then(res => { return res.json() })
+          .then(res => {
+            if (res.status) {
+              this.appId = config.appId
+              this.apiUrl = config.apiUrl
+              this.user = res.data.decoded.user
+              this.recipient = res.data.decoded.recipient
+
+              this.appConfig = res.data.app_config
+
+              this.loadUserRooms()
+              window.addEventListener('resize', this.handleResize)
+              this.socket = io(config.socketUrl)
+              this.authenticated = true
+            } else {
+              console.error('Teemboom Chat: Application not initialized. Check your token, appId, and make sure this domain is allowed')
+            }
+          })
+      } else {
+        this.appId = config.appId
+        this.apiUrl = config.apiUrl
+        this.user = config.user
+        this.recipient = config.recipient
+
+        fetch(`${this.apiUrl}/teemboom_config`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            app_id: this.appId,
+            domain: window.location.origin
+          })
         })
+          .then(res => { return res.json() })
+          .then(res => {
+            if (res.status) {
+              this.appConfig = res.data
+              this.authenticated = true
+              this.loadUserRooms()
+            }
+            else console.error('Teemboom Chat: Application not initialized. Check your appId and make sure this domain is allowed')
+          })
+        window.addEventListener('resize', this.handleResize)
+        this.socket = io(config.socketUrl)
+      }
     },
+
+    async loadUserRooms() {
+      await this.initializeUsers()
+      await this.getUserRooms()
+      this.setupSocket()
+      this.loading = false
+    },
+
     async initializeUsers() {
       await fetch(`${this.apiUrl}/init_users`, {
         method: 'POST',
@@ -74,7 +114,7 @@ export const useAppStore = defineStore('appStore', {
     transformRoomData(room) {
       // Find the recipient in this room: the user who is not the current user
       let recipient = null
-      let blocked = false
+      let blocked = false // This only applies to DM rooms
       if (room.type === 'dm') {
         recipient = room.users.find(user => user._id !== this.user._id)
         recipient.meta = room.users_meta.find(user => user.user_id === recipient._id)
@@ -103,8 +143,8 @@ export const useAppStore = defineStore('appStore', {
         details: room.details
       }
     },
-    async getUserRooms(reset=false) {
-      if (reset){
+    async getUserRooms(reset = false) {
+      if (reset) {
         this.rooms = []
         this.selectedRoom = null
         this.selectedRoomId = null
@@ -138,6 +178,7 @@ export const useAppStore = defineStore('appStore', {
       const existingRoom = this.rooms.find(room => room.recipient._id === this.recipient._id)
       if (existingRoom) {
         if (this.isMobileView) return
+        if (existingRoom.blocked) return
         this.selectedRoom = existingRoom
         this.selectedRoomId = existingRoom._id
         this.markRoomAsRead(existingRoom._id)
@@ -160,11 +201,6 @@ export const useAppStore = defineStore('appStore', {
             this.socket.emit('new_room', { room_id: this.recipient._id, room: res.data })
           })
       }
-    },
-    async loadUserRooms() {
-      await this.initializeUsers()
-      await this.getUserRooms()
-      this.setupSocket()
     },
     updateRoom(room_id) {
       if (room_id === this.selectedRoomId) return
@@ -319,6 +355,10 @@ export const useAppStore = defineStore('appStore', {
     },
     socketSendMessage(room_ids, message) {
       this.socket.emit('send_message', { room_ids: room_ids, message: message })
-    }
+    },
+
+    handleResize() {
+      this.isMobileView = document.getElementById('teemboom_chat').clientWidth <= 768
+    },
   },
 })

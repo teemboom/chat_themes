@@ -1,38 +1,47 @@
 <template>
   <div class="chat-window" :class="{ 'chat-window-mobile': appStore.isMobileView }">
-    <div class="chat-header">
-      
-      <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
-        <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
-        <div class="chat-title-text">
-          <span>{{ appStore.selectedRoom.details.name }}</span>
-          <span v-if="showTitleDetails" class="chat-title-text-status">Click For Details</span>
-        </div>
-      </div>
-      <button v-if="isMobile" class="back-button" @click="$emit('back')">
-        ←
-      </button>
+    <!-- Placeholder when no room is selected -->
+    <div v-if="!appStore.selectedRoom && !appStore.selectedRoomId" class="chat-placeholder">
+      <img src="https://studio.uxpincdn.com/studio/wp-content/uploads/2023/04/Chat-User-Interface-Design.png.webp" alt="Welcome" class="placeholder-img" />
+      <h2>Welcome to Chat</h2>
+      <p>Select a chat to start messaging.</p>
     </div>
-
-    <div class="messages-container" ref="messagesContainer">
-      <template v-if="isLoading">
-        <div class="loading-bubble" v-for="n in 7" :key="n">
-          <div class="loading-avatar"></div>
-          <div class="loading-content">
-            <div class="loading-line"></div>
-            <div class="loading-line"></div>
+    <!-- Actual chat UI -->
+    <template v-else>
+      <div class="chat-header">
+        
+        <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
+          <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
+          <div class="chat-title-text">
+            <span>{{ appStore.selectedRoom.details.name }}</span>
+            <span v-if="showTitleDetails" class="chat-title-text-status">Click For Details</span>
           </div>
         </div>
-      </template>
-      <MessageBubble v-else v-for="(message, index) in appStore.messages" :previous-message="appStore.messages[index - 1]" :key="message.id" :message="message" @reply="setReplyMessage" />
-    </div>
+        <button v-if="isMobile" class="back-button" @click="$emit('back')">
+          ←
+        </button>
+      </div>
 
-    <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo=null" />
+      <div class="messages-container" ref="messagesContainer">
+        <template v-if="isLoading">
+          <div class="loading-bubble" v-for="n in 7" :key="n">
+            <div class="loading-avatar"></div>
+            <div class="loading-content">
+              <div class="loading-line"></div>
+              <div class="loading-line"></div>
+            </div>
+          </div>
+        </template>
+        <MessageBubble v-else v-for="(message, index) in appStore.messages" :previous-message="appStore.messages[index - 1]" :key="message.id" :message="message" @reply="setReplyMessage" />
+      </div>
 
-    <RoomSidebar
-      v-if="sidebarOpen"
-      @close="sidebarOpen = false"
-    />
+      <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo=null" />
+
+      <RoomSidebar
+        v-if="sidebarOpen"
+        @close="sidebarOpen = false"
+      />
+    </template>
   </div>
 </template>
 
@@ -94,6 +103,7 @@ export default {
   },
   methods: {
     loadMessages() {
+      if (!this.appStore.selectedRoomId) return
       this.isLoading = null
       setTimeout(() => {
         if (this.isLoading === null) this.isLoading = true
@@ -336,5 +346,22 @@ export default {
   width: 100%;
   height: 100%;
   background-color: var(--teemboom-bg-primary);
+}
+
+.chat-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--teemboom-text-secondary);
+  background: var(--teemboom-bg-secondary);
+  text-align: center;
+}
+.placeholder-img {
+  width: 250px;
+  margin-bottom: 32px;
+  opacity: 0.8;
 }
 </style>

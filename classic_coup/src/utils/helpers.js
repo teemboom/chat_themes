@@ -13,7 +13,6 @@ export function addBackButtonHandler(callback) {
 
     // Listen for the popstate event
     window.addEventListener('popstate', handler);
-    console.log('Back button handler added.');
     listenerAdded = true;
   }
 

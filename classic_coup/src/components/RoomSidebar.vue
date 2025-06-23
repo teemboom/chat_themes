@@ -307,7 +307,7 @@ export default {
         .then(res => {
           if (!res.status) console.error('error leaving group')
           else {
-            this.appStore.getUserRooms()
+            this.appStore.getUserRooms(true)
             this.$emit('close')
           }
         })
@@ -330,7 +330,7 @@ export default {
         .then(res => {
           if (!res.status) console.error('error leaving group')
           else {
-            this.appStore.getUserRooms()
+            this.appStore.getUserRooms(true)
             this.$emit('close')
           }
         })
@@ -352,7 +352,7 @@ export default {
         .then(res => {
           if (!res.status) console.error('error unblocking user')
           else {
-            this.appStore.getUserRooms()
+            this.appStore.getUserRooms(true)
             this.$emit('close')
           }
         })
@@ -382,7 +382,7 @@ export default {
           if (hasError) {
             console.error('error adding members');
           } else {
-            this.appStore.getUserRooms();
+            this.appStore.getUserRooms(true);
             this.selectedUsers = [];
             this.closeModal();
           }
@@ -408,7 +408,7 @@ export default {
         .then(res => {
           if (!res.status) console.error('error making admin')
           else {
-            this.appStore.getUserRooms()
+            this.appStore.getUserRooms(true)
           }
         })
     },
@@ -429,7 +429,7 @@ export default {
         .then(res => {
           if (!res.status) console.error('error removing admin')
           else {
-            this.appStore.getUserRooms()
+            this.appStore.getUserRooms(true)
           }
         })
     },
@@ -451,7 +451,7 @@ export default {
           if (!res.status) {
             console.error('error removing member:', res.message);
           } else {
-            this.appStore.getUserRooms();
+            this.appStore.getUserRooms(true);
             this.closeModal();
           }
         })

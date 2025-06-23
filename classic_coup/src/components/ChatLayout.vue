@@ -1,11 +1,11 @@
 <template>
-    <div class="chat-layout">
+    <div class="chat-layout" v-if="appStore.authenticated">
         <div class="chat-container" :class="{ 'mobile-view': appStore.isMobileView }">
             <!-- if it is not a mobile view, it will always show the sidebar and if it is a mobile view, 
                 it will show the sidebar only if there is no selected chat -->
             <ChatSidebar v-if="!appStore.isMobileView || !appStore.selectedRoomId" />
             <!-- if it is a mobile view, it will show the chat window only if there is a selected chat -->
-            <ChatWindow v-if="appStore.selectedRoomId" @back="handleBack" :is-mobile="appStore.isMobileView" />
+            <ChatWindow v-if="appStore.selectedRoomId || !appStore.isMobileView" @back="handleBack" :is-mobile="appStore.isMobileView" />
         </div>
     </div>
 </template>

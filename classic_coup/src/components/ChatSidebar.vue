@@ -22,6 +22,9 @@
       />
     </div>
     <div class="chats-list">
+      <div v-if="!appStore.loading && appStore.rooms.length === 0" class="no-chats-message">
+        <p>No chats yet. Create a new chat to start messaging!</p>
+      </div>
       <ChatItem
         v-for="room in filteredRooms"
         :key="room.id"
@@ -212,6 +215,16 @@ export default {
 
 .chats-list::-webkit-scrollbar-thumb:hover {
   background: var(--teemboom-primary-color);
+}
+
+.no-chats-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--teemboom-text-secondary);
+  text-align: center;
+  padding: 20px;
 }
 
 @media (max-width: 768px) {
