@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { io } from 'socket.io-client'
 import { scrollToBottom } from '../utils/helpers'
 
 export const useAppStore = defineStore('appStore', {
@@ -8,6 +7,7 @@ export const useAppStore = defineStore('appStore', {
     authenticated: false,
     appId: null,
     apiUrl: null,
+    socketUrl: null,
     user: null,
     recipient: null,
     appConfig: null,
@@ -48,7 +48,7 @@ export const useAppStore = defineStore('appStore', {
 
               this.loadUserRooms()
               window.addEventListener('resize', this.handleResize)
-              this.socket = io(config.socketUrl)
+              this.socketUrl = config.socketUrl
               this.authenticated = true
             } else {
               console.error(`Teemboom Chat: ${res.message}`)
@@ -76,7 +76,7 @@ export const useAppStore = defineStore('appStore', {
               this.appConfig = res.data
               this.authenticated = true
               window.addEventListener('resize', this.handleResize)
-              this.socket = io(config.socketUrl)
+              this.socketUrl = config.socketUrl
               this.loadUserRooms()
             }
             else console.error(`Teemboom Chat: ${res.message}`)
@@ -173,7 +173,7 @@ export const useAppStore = defineStore('appStore', {
     },
     async findRecipientRoom() {
       // This function should only run if we need to create a room with a recipient
-      if (!this.recipient) return
+      if (!this.recipient || !this.recipient.id) return
       // If the room is found locally in the already fetched rooms, use it
       const existingRoom = this.rooms.find(room => room.recipient._id === this.recipient._id)
       if (existingRoom) {
@@ -198,7 +198,7 @@ export const useAppStore = defineStore('appStore', {
           .then(res => {
             if (res.status) this.getUserRooms()
             // If a new room is created, emit to the recipient to update their interface with the new room
-            this.socket.emit('new_room', { room_id: this.recipient._id, room: res.data })
+            this.sendWebSocketEvent(this.socket, 'new_room', { room_id: this.recipient._id, room: res.data })
           })
       }
     },
@@ -250,7 +250,7 @@ export const useAppStore = defineStore('appStore', {
       })
         .then(res => { return res.json() })
         .then(res => {
-          this.socket.emit('edit_message', { room_id: recipient_id, data: res.data })
+          this.sendWebSocketEvent(this.socket, 'edit_message', { room_id: recipient_id, data: res.data })
           this.updateMessageContent(res.data.message_id, res.data.content)
         })
     },
@@ -286,7 +286,7 @@ export const useAppStore = defineStore('appStore', {
         .then(res => { return res.json() })
         .then(res => {
           this.updateEntireMessage(res.data)
-          if (deleteForEveryone) this.socket.emit('delete_message', { room_id: recipient_id, data: res.data })
+          if (deleteForEveryone) this.sendWebSocketEvent(this.socket, 'delete_message', { room_id: recipient_id, data: res.data })
         })
     },
     incrementUnreadCount(roomId) {
@@ -319,42 +319,80 @@ export const useAppStore = defineStore('appStore', {
         })
       })
     },
-    setupSocket() {
-      // this.socket.on('joined', (msg)=>{
-      //   console.log(msg)
-      // })
-      this.socket.emit('join_room', this.user._id)
-      this.socket.on('receive_message', (msg) => {
-        this.addMessageToRoom(msg)
-      })
-      this.socket.on('edit_message', (msg) => {
-        this.updateMessageContent(msg.message_id, msg.content)
-      })
-      this.socket.on('delete_message', (msg) => {
-        console.log(msg)
-        this.updateEntireMessage(msg)
-      })
-      this.socket.on('new_room', (room_id) => {
-        fetch(`${this.apiUrl}/get_room_details`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user_id: this.user._id,
-            room_id: room_id
+    sendWebSocketEvent(socket, eventType, payload) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        const message = {
+          type: eventType,
+          data: payload
+        };
+        socket.send(JSON.stringify(message));
+      } else {
+        console.error('WebSocket is not open. Cannot send message:', eventType, payload);
+      }
+    },
+    setupSocket() {    
+      this.socket = new WebSocket(this.socketUrl);
+      // Handle socket open: join room
+      this.socket.onopen = () => {
+        console.log('WebSocket opened');
+        // Send a join_room event
+        this.sendWebSocketEvent(this.socket, 'join_room', { room: this.user._id });
+      };
+
+    
+      // Handle incoming messages
+      this.socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        const type = message.type;
+        const data = message.data;
+    
+        if (type === 'joined') {
+          console.log(data);
+        }
+    
+        if (type === 'receive_message') {
+          this.addMessageToRoom(data);
+        }
+    
+        if (type === 'edit_message') {
+          this.updateMessageContent(data.message_id, data.content);
+        }
+    
+        if (type === 'delete_message') {
+          this.updateEntireMessage(data);
+        }
+    
+        if (type === 'new_room') {
+          const room_id = data.room_id; // assuming your server sends { room_id, ... } as data
+          fetch(`${this.apiUrl}/get_room_details`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_id: this.user._id,
+              room_id: room_id
+            })
           })
-        })
-          .then(res => { return res.json() })
+          .then(res => res.json())
           .then(res => {
-            if (!res.status) return
-            let room = this.transformRoomData(res.data)
-            this.rooms.unshift(room)
-          })
-      })
+            if (!res.status) return;
+            let room = this.transformRoomData(res.data);
+            this.rooms.unshift(room);
+          });
+        }
+      };
+    
+      this.socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+    
+      this.socket.onclose = () => {
+        console.log("WebSocket closed");
+      };
     },
     socketSendMessage(room_ids, message) {
-      this.socket.emit('send_message', { room_ids: room_ids, message: message })
+      this.sendWebSocketEvent(this.socket, 'send_message', { room_ids: room_ids, message: message })
     },
 
     handleResize() {
