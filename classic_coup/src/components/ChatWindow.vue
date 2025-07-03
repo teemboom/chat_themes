@@ -2,16 +2,19 @@
   <div class="chat-window" :class="{ 'chat-window-mobile': appStore.isMobileView }">
     <!-- Placeholder when no room is selected -->
     <div v-if="!appStore.selectedRoom && !appStore.selectedRoomId" class="chat-placeholder">
-      <img src="https://studio.uxpincdn.com/studio/wp-content/uploads/2023/04/Chat-User-Interface-Design.png.webp" alt="Welcome" class="placeholder-img" />
+      <img src="https://studio.uxpincdn.com/studio/wp-content/uploads/2023/04/Chat-User-Interface-Design.png.webp"
+        alt="Welcome" class="placeholder-img" />
       <h2>Welcome to Chat</h2>
       <p>Select a chat to start messaging.</p>
     </div>
     <!-- Actual chat UI -->
     <template v-else>
       <div class="chat-header">
-        
+
         <div class="chat-title" @click="sidebarOpen = true" style="cursor:pointer;">
-          <img class="avatar" :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')" @error="handleImageError">
+          <img class="avatar"
+            :src="appStore.selectedRoom.details.image_url || (appStore.selectedRoom.details.type === 'group' ? 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png' : 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png')"
+            @error="handleImageError">
           <div class="chat-title-text">
             <span>{{ appStore.selectedRoom.details.name }}</span>
             <span v-if="showTitleDetails" class="chat-title-text-status">Click For Details</span>
@@ -32,15 +35,14 @@
             </div>
           </div>
         </template>
-        <MessageBubble v-else v-for="(message, index) in appStore.messages" :previous-message="appStore.messages[index - 1]" :key="message.id" :message="message" @reply="setReplyMessage" />
+        <MessageBubble v-else v-for="(message, index) in appStore.messages"
+          :previous-message="appStore.messages[index - 1]" :key="message.id" :message="message"
+          @reply="setReplyMessage" />
       </div>
 
-      <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo=null" />
+      <MessageInput @send-message="handleSendMessage" :reply="replyTo" @cancel-reply="replyTo = null" />
 
-      <RoomSidebar
-        v-if="sidebarOpen"
-        @close="sidebarOpen = false"
-      />
+      <RoomSidebar v-if="sidebarOpen" @close="sidebarOpen = false" />
     </template>
   </div>
 </template>
@@ -131,41 +133,51 @@ export default {
       await this.$nextTick()
       if (this.$refs.messagesContainer) {
         this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
+        this.appStore.setMessagesContainerRef(this.$refs.messagesContainer)
       }
     },
     handleSendMessage(content, attachments) {
       // We save this in the variable so even if the state changes while this function is running it won't affect the end result
       const transmit = this.appStore.selectedRoom.transmit
       fetch(`${this.appStore.apiUrl}/new_message`, {
-			'headers': { 'Content-type': 'application/json' },
-			'method': 'POST',
-			'body': JSON.stringify({
-				'app_id': this.appStore.appId,
-				'room_id': this.appStore.selectedRoomId,
-				'user_id': this.appStore.user._id,
-				'content': content,
-				'reply_to': this.replyTo?._id || null,
-        'attachments': attachments
-			})
-		})
-			.then(res => { return res.json() })
-			.then(res => {
-				if (!res.status) {
-					return
-				}
-        this.appStore.addMessageToRoom(res.data)
-        this.appStore.socketSendMessage(transmit, res.data)
-			})
+        'headers': { 'Content-type': 'application/json' },
+        'method': 'POST',
+        'body': JSON.stringify({
+          'app_id': this.appStore.appId,
+          'room_id': this.appStore.selectedRoomId,
+          'user_id': this.appStore.user._id,
+          'content': content,
+          'reply_to': this.replyTo?._id || null,
+          'attachments': attachments
+        })
+      })
+        .then(res => { return res.json() })
+        .then(res => {
+          if (!res.status) {
+            return
+          }
+          this.appStore.addMessageToRoom(res.data)
+          this.appStore.socketSendMessage(transmit, res.data)
+          // let i = 0;
+          // const interval = setInterval(() => {
+          //   if (i >= 100000) {
+          //     clearInterval(interval);
+          //     return;
+          //   }
+          //   this.appStore.socketSendMessage(transmit, res.data);
+          //   i++;
+          // }, 1);
+        })
     },
-    setReplyMessage(message){
+    setReplyMessage(message) {
       this.replyTo = message
     },
     handleImageError(e) {
       e.target.src = this.appStore.selectedRoom.details.type === 'group' ? '/group-placeholder.png' : '/person-placeholder.png'
     }
   },
-  watch:{
-    'appStore.selectedRoom'(newVal){
+  watch: {
+    'appStore.selectedRoom'(newVal) {
       this.replyTo = null
       this.loadMessages()
       this.showTitleDetails = true
@@ -176,8 +188,7 @@ export default {
   },
   mounted() {
     this.loadMessages()
-    this.appStore.setMessagesContainerRef(this.$refs.messagesContainer)
-    if (this.appStore.isMobileView) addBackButtonHandler(()=>{this.$emit('back')})
+    if (this.appStore.isMobileView) addBackButtonHandler(() => { this.$emit('back') })
     setTimeout(() => {
       this.showTitleDetails = false
     }, 3000);
@@ -292,11 +303,12 @@ export default {
   animation: pulse 1.5s infinite;
 }
 
-.loading-bubble:nth-of-type(even){
+.loading-bubble:nth-of-type(even) {
   flex-direction: row-reverse;
   justify-content: end;
 }
-.loading-bubble:nth-of-type(even) .loading-avatar{
+
+.loading-bubble:nth-of-type(even) .loading-avatar {
   margin-left: 12px;
   margin-right: 0px;
 }
@@ -323,9 +335,11 @@ export default {
   0% {
     opacity: 0.6;
   }
+
   50% {
     opacity: 0.8;
   }
+
   100% {
     opacity: 0.6;
   }
@@ -335,6 +349,7 @@ export default {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -359,6 +374,7 @@ export default {
   background: var(--teemboom-bg-secondary);
   text-align: center;
 }
+
 .placeholder-img {
   width: 250px;
   margin-bottom: 32px;

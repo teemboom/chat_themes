@@ -62,7 +62,6 @@ export function detectUrls(text) {
 
 export const scrollToBottom = async (containerRef) => {
   if (!containerRef) return;
-
   await new Promise(resolve => setTimeout(resolve, 0));
   if (containerRef) {
     const { scrollTop, scrollHeight, clientHeight } = containerRef;

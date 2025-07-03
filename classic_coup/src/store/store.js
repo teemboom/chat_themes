@@ -198,7 +198,7 @@ export const useAppStore = defineStore('appStore', {
           .then(res => {
             if (res.status) this.getUserRooms()
             // If a new room is created, emit to the recipient to update their interface with the new room
-            this.sendWebSocketEvent(this.socket, 'new_room', { room_id: this.recipient._id, room: res.data })
+            this.sendWebSocketEvent(this.socket, 'new_room', { room_id: this.recipient._id, data: res.data })
           })
       }
     },
@@ -323,7 +323,7 @@ export const useAppStore = defineStore('appStore', {
       if (socket && socket.readyState === WebSocket.OPEN) {
         const message = {
           type: eventType,
-          data: payload
+          payload: payload
         };
         socket.send(JSON.stringify(message));
       } else {
@@ -336,7 +336,7 @@ export const useAppStore = defineStore('appStore', {
       this.socket.onopen = () => {
         console.log('WebSocket opened');
         // Send a join_room event
-        this.sendWebSocketEvent(this.socket, 'join_room', { room: this.user._id });
+        this.sendWebSocketEvent(this.socket, 'join_room', { room_id: this.user._id });
       };
 
     
@@ -392,7 +392,7 @@ export const useAppStore = defineStore('appStore', {
       };
     },
     socketSendMessage(room_ids, message) {
-      this.sendWebSocketEvent(this.socket, 'send_message', { room_ids: room_ids, message: message })
+      this.sendWebSocketEvent(this.socket, 'send_message', { room_ids: room_ids, data: message })
     },
 
     handleResize() {
